@@ -1,4 +1,18 @@
 import 'dart:convert' show Converter, Codec;
+import 'dart:typed_data';
+
+/// Bencoding is a common representation in bittorrent used for dictionary,
+/// list, int and string hierarchies. It's used to encode .torrent files and
+/// some messages in the network protocol.
+///
+/// Strings in bencoded structures do not necessarily represent text.
+/// Strings are raw byte buffers of a certain length. If a string is meant to be
+/// interpreted as text, it is required to be UTF-8 encoded. See `BEP 3`_.
+///
+/// The function for decoding bencoded data [decode], returning [Object].
+///
+/// It's possible to construct an entry from a bdecode_node, if a structure needs
+/// to be altered and re-encoded.
 
 /// Error thrown in encoding if an object cannot be converted
 ///
@@ -23,7 +37,7 @@ class BencodeInvalidError extends Error {
   String toString() => 'Invlida bencoded sequence at $positionStart';
 }
 
-/// Convert Map/List/String/Integer to bencoded string
+/// [encode] will encode data to bencoded form.
 ///
 String encode(Object input) {
   return BenEncoder().convert(input);
@@ -37,6 +51,7 @@ class BenEncoder extends Converter<Object, String> {
     } else if (input is int) {
       return 'i${input}e';
     } else if (input is List) {
+      // TODO: Uint8List
       final s = input.map((i) => encode(i)).toList().join('');
       return 'l${s}e';
     } else if (input is Map) {
@@ -52,12 +67,17 @@ class BenEncoder extends Converter<Object, String> {
   }
 }
 
-/// Convert bencoded string to Map/List/String/Integer
+/// [decode] decodes/parses bdecoded data (for example a .torrent file).
 ///
-Object decode(String input) => BenDecoder(input.codeUnits).convert(input);
+Object decode(String input) => BenDecoder().convert(input);
+
+Object decodeBytes(Uint8List input) =>
+    BenDecoder(forceUtf8: false).convertBytes(input);
 
 ///
 class BenDecoder extends Converter<String, Object> {
+  final bool forceUtf8;
+
   /// CodeUnits of input String
   late List<int> source;
   int pos;
@@ -65,7 +85,7 @@ class BenDecoder extends Converter<String, Object> {
   /// [result] used in decoding, contain the result of list or map.
   final result = [];
 
-  BenDecoder([this.source = const [], this.pos = 0]);
+  BenDecoder({this.source = const [], this.pos = 0, this.forceUtf8 = true});
 
   @override
   Object convert(String input) {
@@ -73,9 +93,13 @@ class BenDecoder extends Converter<String, Object> {
     return _decode();
   }
 
-  /// Resurse function
+  Object convertBytes(Uint8List input) {
+    source = input;
+    return _decode();
+  }
+
+  /// Recursive decode
   Object _decode() {
-    // igore [input]
     const $semicolon = 0x3a; // :
     const $e = 101; // e
 
@@ -105,14 +129,19 @@ class BenDecoder extends Converter<String, Object> {
             break;
           }
 
-          final d = BenDecoder(source, pos);
+          final d = BenDecoder(source: source, pos: pos, forceUtf8: forceUtf8);
           result.add(d._decode());
           pos = d.pos + 1; // left last char of list
         }
 
         final m = {};
         for (int i = 0; i < result.length; i += 2) {
-          m[result[i]] = result[i + 1];
+          if (forceUtf8) {
+            m[result[i]] = result[i + 1];
+          } else {
+            final key = String.fromCharCodes(result[i]);
+            m[key] = result[i + 1];
+          }
         }
         return m;
       case 108: // l
@@ -123,7 +152,7 @@ class BenDecoder extends Converter<String, Object> {
             break;
           }
 
-          final d = BenDecoder(source, pos);
+          final d = BenDecoder(source: source, pos: pos, forceUtf8: forceUtf8);
           result.add(d._decode());
           pos = d.pos + 1; // left last char of list
         }
@@ -140,7 +169,10 @@ class BenDecoder extends Converter<String, Object> {
           throw BencodeInvalidError(spos);
         }
         pos = spos + len; // left last char of string
-        return String.fromCharCodes(source.sublist(spos + 1, spos + 1 + len));
+        if (forceUtf8) {
+          return String.fromCharCodes(source.sublist(spos + 1, spos + 1 + len));
+        }
+        return Uint8List.fromList(source.sublist(spos + 1, spos + 1 + len));
     }
   }
 }
@@ -151,7 +183,7 @@ class BenCodec extends Codec {
   const BenCodec();
 
   @override
-  BenDecoder get decoder => BenDecoder([]);
+  BenDecoder get decoder => BenDecoder();
 
   @override
   BenEncoder get encoder => BenEncoder();

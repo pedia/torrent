@@ -1,4 +1,4 @@
-import 'package:bencode/bencode.dart';
+import 'package:torrent/bencode.dart';
 import 'package:test/test.dart';
 
 void main() {
