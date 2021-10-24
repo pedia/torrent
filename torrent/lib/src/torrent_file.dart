@@ -8,9 +8,11 @@ Future<Torrent> parse(File file) {
 
   file.readAsBytes().then((content) {
     completer.complete(Torrent.parse(content));
-  }).catchError((err) {
-    completer.completeError(err);
-  });
+  })
+      // .catchError((err) {
+      //   completer.completeError(err);
+      // })
+      ;
 
   return completer.future;
 }

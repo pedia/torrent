@@ -1,3 +1,23 @@
+import 'package:crypto/crypto.dart';
+
+class File {
+  final String path;
+  final int size;
+  final Digest filehash;
+  final String? symlink;
+  int offset;
+  int? mtime;
+
+  File({
+    required this.path,
+    required this.size,
+    required this.filehash,
+    this.symlink,
+    this.offset = 0,
+    this.mtime,
+  });
+}
+
 /// The [FileStorage] class represents a file list and the piece
 /// size. Everything necessary to interpret a regular bittorrent storage
 /// file structure.
@@ -11,11 +31,15 @@ class FileStorage {
   final String name;
 
   /// the sum of all file sizes
-  final int totalSize;
+  // final int totalSize;
+
+  final files = <File>[];
+
+  void add(File file) => files.add(file);
 
   FileStorage({
     required this.pieceLenth,
     required this.name,
-    required this.totalSize,
+    // required this.totalSize,
   });
 }
