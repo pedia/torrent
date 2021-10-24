@@ -1,5 +1,28 @@
 import 'dart:convert' show Converter, Codec;
 
+/// Error thrown in encoding if an object cannot be converted
+///
+/// The [unsupportedObject] field holds that object that failed to be converted.
+class BencodeUnsupportObjectError extends Error {
+  /// The object that could not be serialized.
+  final Object unsupportedObject;
+
+  BencodeUnsupportObjectError(this.unsupportedObject);
+
+  @override
+  String toString() => 'Unsupport ${Error.safeToString(unsupportedObject)}';
+}
+
+/// Error thrown in decoding if an object cannot be converted
+class BencodeInvalidError extends Error {
+  final int positionStart;
+
+  BencodeInvalidError(this.positionStart);
+
+  @override
+  String toString() => 'Invlida bencoded sequence at $positionStart';
+}
+
 /// Convert Map/List/String/Integer to bencoded string
 ///
 String encode(Object input) {
@@ -24,7 +47,7 @@ class BenEncoder extends Converter<Object, String> {
           es.map((e) => encode(e.key) + encode(e.value)).toList().join('');
       return 'd${s}e';
     } else {
-      throw Exception('Unsupport ${input.runtimeType}');
+      throw BencodeUnsupportObjectError(input);
     }
   }
 }
@@ -56,16 +79,25 @@ class BenDecoder extends Converter<String, Object> {
     const $semicolon = 0x3a; // :
     const $e = 101; // e
 
+    if (source.isEmpty) {
+      throw BencodeInvalidError(0);
+    }
+
     final c = source[pos];
     switch (c) {
       case 105: // i
         final $epos = source.indexOf($e, pos);
         if ($epos == -1) {
-          throw Exception('Invalid bencoded sequence');
+          throw BencodeInvalidError(pos);
         }
         int i = pos;
         pos = $epos; // left last char of integer
-        return int.parse(String.fromCharCodes(source.sublist(i + 1, $epos)));
+        int? v =
+            int.tryParse(String.fromCharCodes(source.sublist(i + 1, $epos)));
+        if (v == null) {
+          throw BencodeInvalidError(i + 1);
+        }
+        return v;
       case 100: // d
         pos += 1;
         while (pos < source.length - 1) {
@@ -101,11 +133,11 @@ class BenDecoder extends Converter<String, Object> {
         // find 0x3a ':'
         final spos = source.indexOf($semicolon, pos);
         if (spos == -1) {
-          throw Exception('Invalid bencoded sequence');
+          throw BencodeInvalidError(pos);
         }
         int len = int.parse(String.fromCharCodes(source.sublist(pos, spos)));
         if (spos + 1 + len > source.length) {
-          throw Exception('Invalid bencoded sequence');
+          throw BencodeInvalidError(spos);
         }
         pos = spos + len; // left last char of string
         return String.fromCharCodes(source.sublist(spos + 1, spos + 1 + len));

@@ -108,10 +108,17 @@ void main() {
   });
 
   test('BenCodecUnsupportTypeTest', () {
-    expect(() => encode(3.2), throwsException);
-    expect(() => encode([3.2]), throwsException);
-    expect(() => encode({1: 3.2}), throwsException);
-    expect(() => encode(Object()), throwsException);
+    expect(() => encode(3.2), throwsA(isA<BencodeUnsupportObjectError>()));
+    expect(() => encode([3.2]), throwsA(isA<BencodeUnsupportObjectError>()));
+    expect(() => encode({1: 3.2}), throwsA(isA<BencodeUnsupportObjectError>()));
+    expect(() => encode(Object()), throwsA(isA<BencodeUnsupportObjectError>()));
     // expect(() => encode(null), throwsException);
+  });
+
+  test('BenCodecInvalidTest', () {
+    expect(() => decode(''), throwsA(isA<BencodeInvalidError>()));
+    expect(() => decode('3:'), throwsA(isA<BencodeInvalidError>()));
+    expect(() => decode('iadfe'), throwsA(isA<BencodeInvalidError>()));
+    // TODO: expect(() => decode('3:ddde'), throwsA(isA<BencodeInvalidError>()));
   });
 }
