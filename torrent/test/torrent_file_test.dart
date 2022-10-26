@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 import 'package:torrent/torrent.dart';
+import 'package:torrent/error.dart';
 
 final folder = '../libtorrent/test/test_torrents';
 
@@ -88,9 +89,11 @@ main() {
       'whitespace_url.torrent': (Torrent t) {
         expect(t.announce[0], 'udp://test.com/announce');
       },
-      // 'duplicate_files.torrent': (Torrent t) {
-      //   expect(t.files.length, 2);
-      // },
+      'duplicate_files.torrent': (Torrent t) {
+        expect(t.files.length, 2);
+        expect(t.files[0].path, 'temp/foo/bar.txt');
+        expect(t.files[1].path, 'temp/foo/bar.1.txt');
+      },
 
       //
       // 'v2.torrent': (t) {},

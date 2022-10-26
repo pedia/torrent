@@ -5,32 +5,7 @@ import 'package:torrent/bencode.dart';
 import 'package:torrent/src/file_storage.dart';
 import 'package:torrent/src/url_utils.dart';
 
-enum ErrorCode {
-  invalidBencoding,
-  noFilesInTorrent,
-  tooManyPiecesInTorrent,
-  torrentUnknownVersion,
-  torrentFileParseFailed,
-  torrentInconsistentFiles,
-  torrentInvalidHashes,
-  torrentInvalidLength,
-  torrentInvalidName,
-  torrentInvalidPadFile,
-  torrentInvalidPieceLayer,
-  torrentIsNoDict,
-  torrentInfoNoDict,
-  torrentMissingInfo,
-  torrentMissingName,
-  torrentMissingPieceLength,
-  torrentMissingPieces,
-  torrentMissingPiecesRoot,
-  torrentMissingFileTree,
-}
-
-class TorrentError extends Error {
-  final ErrorCode code;
-  TorrentError(this.code);
-}
+import 'error.dart';
 
 /// Helper extension for get String/List from BytesMap.
 extension _SafeValue on Map {
@@ -177,11 +152,11 @@ class Torrent {
 
     if (!top.containsKey('info')) {
       String? uri = top.stringOf('magnet-uri');
-      if (uri == null) {
-        throw TorrentError(ErrorCode.torrentMissingInfo);
+      if (uri != null) {
+        // TODO: parse magnet uri
       }
 
-      // TODO: parse magnet uri
+      throw TorrentError(ErrorCode.torrentMissingInfo);
     }
 
     // parse info section

@@ -16,6 +16,10 @@ dependencies:
   stream_channel:
   shelf:
   path:
+  # for magnet
+  hex:
+  base32:
+  convert:
 
 
 dev_dependencies:
