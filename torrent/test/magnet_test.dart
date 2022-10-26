@@ -65,7 +65,7 @@ void main() {
   test('parse_missing_hash2', () {
     expect(
       () => AddParam.parse('magnet:?xt=blah&dn=foo&dht=127.0.0.1:43'),
-      throwsA(isA<TorrentError>()),
+      throwsA(isA<TorrentError>()), // TODO:
     );
   });
 }
