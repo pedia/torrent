@@ -17,7 +17,6 @@ dependencies:
   shelf:
   path:
   # for magnet
-  hex:
   base32:
   convert:
 
