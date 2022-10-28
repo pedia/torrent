@@ -11,7 +11,9 @@ String regular(String seg) {
   if (reservedNames.contains(seg)) {
     return '';
   }
-  return seg;
+
+  final a = seg.codeUnits.where((c) => c > 33 && c < 127).toList();
+  return String.fromCharCodes(a);
 }
 
 String sanitizePath(String path) {
@@ -26,7 +28,5 @@ String sanitizePath(String path) {
 
 ///
 String? sanitizeUrl(String? url) {
-  if (url != null) {
-    return url.trim();
-  }
+  return url?.trim();
 }

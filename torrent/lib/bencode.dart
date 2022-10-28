@@ -177,7 +177,7 @@ class BenDecoder extends Converter<String, Object> {
   }
 }
 
-const BenCodec bencodec = BenCodec();
+const BenCodec ben = BenCodec();
 
 class BenCodec extends Codec {
   const BenCodec();

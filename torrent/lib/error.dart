@@ -2,6 +2,8 @@ enum ErrorCode {
   invalidBencoding,
   noFilesInTorrent,
   tooManyPiecesInTorrent,
+
+  /// the torrent file has an unknown meta version
   torrentUnknownVersion,
   torrentFileParseFailed,
   torrentInconsistentFiles,
@@ -31,6 +33,7 @@ enum ErrorCode {
   missingInfoHashInUri,
 }
 
+///
 class TorrentError extends Error {
   final ErrorCode code;
   TorrentError(this.code);
