@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:convert/convert.dart';
 import 'package:torrent/error.dart';
 import 'package:crypto/crypto.dart';

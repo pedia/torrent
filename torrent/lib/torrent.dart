@@ -6,68 +6,77 @@ import 'package:torrent/src/file_storage.dart';
 import 'package:torrent/src/url_utils.dart';
 
 import 'error.dart';
+import 'magnet_uri.dart';
 
-/// Helper extension for get String/List from BytesMap.
-extension _SafeValue on Map {
-  int? intOf(String key) => containsKey(key) ? this[key] as int : null;
+///
+int? _castInt(Object? v) {
+  return v is int ? v : null;
+}
 
-  Uint8List? bytesOf(String key) =>
-      containsKey(key) ? this[key] as Uint8List : null;
+DateTime? _castDate(Object? v) {
+  if (v is int) {
+    return DateTime.fromMillisecondsSinceEpoch(v * 1000);
+  }
+  return null;
+}
 
-  String? stringOf(String key) =>
-      containsKey(key) ? String.fromCharCodes(bytesOf(key)!) : null;
+String? _castString(Object? v) {
+  if (v is Uint8List) {
+    return String.fromCharCodes(v);
+  }
+  return null;
+}
 
-  DateTime? dateOf(String key) => containsKey(key)
-      ? DateTime.fromMillisecondsSinceEpoch((this[key] as int) * 1000)
-      : null;
-
-  /// List<List<Bytes>> to List<String>
-  List<String> expandStringListOf(String key) {
-    final res = <String>[];
-
-    if (containsKey(key) && this[key] is List) {
-      (this[key] as List).cast<List>().forEach((sublist) {
-        for (final Uint8List i in sublist) {
-          res.add(String.fromCharCodes(i));
+/// List<List<Uint8List>> to List<String>
+List<String> _castByteStringList(Object? v) {
+  final res = <String>[];
+  if (v is List) {
+    for (var el in v) {
+      if (el is List) {
+        for (var e in el) {
+          if (e is Uint8List) {
+            res.add(String.fromCharCodes(e));
+          }
         }
-      });
+      }
     }
-
-    return res;
   }
+  return res;
+}
 
-  List<String> stringListOf(String key) {
-    if (containsKey(key)) {
-      return (this[key] as List).map((i) => String.fromCharCodes(i)).toList();
-    }
-    return <String>[];
+/// List<Uint8List>
+List<String>? _castStringList(Object? v) {
+  if (v is List) {
+    return v.map((e) => String.fromCharCodes(e as Uint8List)).toList();
   }
+  return null;
 }
 
 class Torrent {
   final String? name;
   final String? comment;
   final String? createdBy;
-  final DateTime? creationDate;
-  final List<String> announce;
-  final List<String> webseed;
+  final DateTime? ctime;
+  final List<String> announces;
+  final List<String> webseeds;
 
   final int version;
 
-  final FileStorage storage;
+  final FileStorage? storage;
 
   Torrent({
     this.version = 0,
     this.name,
     this.comment,
     this.createdBy,
-    this.creationDate,
-    this.announce = const [],
-    this.webseed = const [],
-    required this.storage,
-  });
+    this.ctime,
+    List<String>? announces,
+    List<String>? webseeds,
+    this.storage,
+  })  : announces = announces ?? [],
+        webseeds = webseeds ?? [];
 
-  List<File> get files => storage.files;
+  List<File>? get files => storage?.files;
 
   // {created by: libtorrent, creation date: 1359599503,
   //  info: {length: 0, name: temp, piece length: 16384, pieces: }}
@@ -127,19 +136,16 @@ class Torrent {
 
     path = sanitizePath(path);
 
-    int? mtime = info.intOf('mtime');
+    final mtime = _castInt(info['mtime']);
 
-    storage.add(File(
-      path: path,
-      size: info.intOf('length')!,
-      filehash: digestFrom(pieces),
-      mtime: mtime,
-    ));
-  }
-
-  static Digest digestFrom(Uint8List buf) {
-    return Digest(buf);
-    // ByteData.view(buf.buffer).getUint32(0);
+    storage.add(
+      File(
+        path: path,
+        size: _castInt(info['length']) ?? 0,
+        filehash: Digest(pieces),
+        mtime: mtime,
+      ),
+    );
   }
 
   static Torrent? parse(Uint8List content) {
@@ -148,19 +154,23 @@ class Torrent {
       throw TorrentError(ErrorCode.torrentIsNoDict);
     }
 
-    final top = map.cast<Object, Object>();
+    final top = map.cast<String, Object>();
 
-    if (!top.containsKey('info')) {
-      String? uri = top.stringOf('magnet-uri');
+    final info = top['info'];
+    if (info == null) {
+      final uri = _castString(top['magnet-uri']);
       if (uri != null) {
-        // TODO: parse magnet uri
+        final p = AddParam.parse(uri);
+        // infoHashs
+        // urls
+        return null;
       }
 
       throw TorrentError(ErrorCode.torrentMissingInfo);
     }
 
     // parse info section
-    Object? info = top['info'];
+
     if (info is! Map) {
       throw TorrentError(ErrorCode.torrentInfoNoDict);
     }
@@ -168,47 +178,49 @@ class Torrent {
     // TODO: info-hash
 
     // version
-    int? version = info.intOf('meta version');
-    if (version != null && version > 2) {
+    final version = _castInt(info['meta version']) ?? 1;
+    if (version > 2) {
       throw TorrentError(ErrorCode.torrentUnknownVersion);
     }
 
-    version ??= 1;
-
     // piece length
-    int? pieceLength = info.intOf('piece length');
-    if (pieceLength != null) {
-      if (pieceLength <= 0 || pieceLength > 0x7fffffff / 2) {
-        throw TorrentError(ErrorCode.torrentMissingPieceLength);
-      }
-
-      // according to BEP 52: "It must be a power of two and at least 16KiB."
-      if (version > 1 &&
-          (pieceLength < 16 * 1024 || (pieceLength & (pieceLength - 1)) != 0)) {
-        throw TorrentError(ErrorCode.torrentMissingPieceLength);
-      }
+    final pieceLength = _castInt(info['piece length']);
+    if (pieceLength == null ||
+        pieceLength <= 0 ||
+        pieceLength > 0x7fffffff / 2) {
+      throw TorrentError(ErrorCode.torrentMissingPieceLength);
     }
-    assert(pieceLength != null);
+
+    // according to BEP 52: "It must be a power of two and at least 16KiB."
+    if (version > 1 &&
+        (pieceLength < 16 * 1024 || (pieceLength & (pieceLength - 1)) != 0)) {
+      throw TorrentError(ErrorCode.torrentMissingPieceLength);
+    }
 
     // name
-    String? name = info.stringOf('name.utf-8');
-    name ??= info.stringOf('name');
-    if (name == null) {
+    final name = _castString(info['name.utf-8']) ?? _castString(info['name']);
+    if (name == null || name.isEmpty) {
+      throw TorrentError(ErrorCode.torrentMissingName);
+    }
+
+    final path = sanitizePath(name);
+    if (path.isEmpty) {
       throw TorrentError(ErrorCode.torrentMissingName);
     }
 
     // storage
     final storage = FileStorage(
-      pieceLenth: pieceLength!,
+      pieceLenth: pieceLength,
       name: name,
     );
 
-    final fileTree = info['file tree'];
-    final files = info['files'];
     final pieces = info['pieces'];
     if (pieces == null) {
       throw TorrentError(ErrorCode.torrentMissingPieces);
     }
+
+    final fileTree = info['file tree'];
+    final files = info['files'];
 
     if (version >= 2 && fileTree != null) {
       buildV2(storage, fileTree, info);
@@ -221,38 +233,29 @@ class Torrent {
     // throw TorrentError(ErrorCode.torrentMissingFileTree);
 
     // http seeds
-    List<String>? webseed;
-    try {
-      webseed = top.stringListOf('url-list');
-    } catch (_) {}
-
-    if (webseed == null) {
-      try {
-        webseed = top.stringListOf('url-list');
-      } catch (_) {}
+    final webseeds = _castByteStringList(top['url-list']);
+    final s2 = _castStringList(top['httpseeds']);
+    if (s2 != null) {
+      webseeds.addAll(s2);
     }
 
-    webseed ??= [];
-    webseed.addAll(top.stringListOf('httpseeds'));
-
-    webseed =
-        webseed.map((x) => sanitizeUrl(x)!).where((x) => x.isNotEmpty).toList();
+    // TODO: trim, filter empty
 
     //
-    List<String> announce = top.expandStringListOf('announce-list');
+    final announce = _castByteStringList(top['announce-list']);
 
-    String? url = sanitizeUrl(top.stringOf('announce'));
+    String? url = sanitizeUrl(_castString(top['announce']));
     if (url != null && url.isNotEmpty) {
       announce.insert(0, url);
     }
 
     return Torrent(
       name: name,
-      createdBy: top.stringOf('createdBy'),
-      comment: top.stringOf('comment'),
-      creationDate: top.dateOf('creation date'),
-      announce: announce,
-      webseed: webseed,
+      createdBy: _castString(top['createdBy']),
+      comment: _castString(top['comment']),
+      ctime: _castDate(top['creation date']),
+      announces: announce,
+      webseeds: webseeds.where((e) => e.isNotEmpty).toList(),
       storage: storage,
     );
   }

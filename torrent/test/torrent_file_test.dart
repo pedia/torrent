@@ -28,71 +28,71 @@ main() {
     final tests = {
       'base.torrent': (Torrent t) {
         expect(t, isNotNull);
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp');
       },
       'empty_path.torrent': (Torrent t) {
         expect(t, isNotNull);
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp');
       },
       'parent_path.torrent': (Torrent t) {
         expect(t, isNotNull);
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/bar');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/bar');
       },
       'hidden_parent_path.torrent': (Torrent t) {
         expect(t, isNotNull);
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/foo/bar/bar');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/foo/bar/bar');
       },
       'single_multi_file.torrent': (Torrent t) {
         expect(t, isNotNull);
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/foo/bar');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/foo/bar');
       },
       'slash_path.torrent': (Torrent t) {
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/bar');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/bar');
       },
       'slash_path2.torrent': (Torrent t) {
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/abc/def/bar');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/abc/def/bar');
       },
       'slash_path3.torrent': (Torrent t) {
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/abc');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/abc');
       },
       'backslash_path.torrent': (Torrent t) {
-        expect(t.files.length, 1);
-        expect(t.files[0].path, 'temp/bar');
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path, 'temp/bar');
       },
       'url_list.torrent': (Torrent t) {
-        expect(t.webseed.isEmpty, isTrue);
+        expect(t.webseeds.isEmpty, isTrue);
       },
       'url_list2.torrent': (Torrent t) {
-        expect(t.webseed.isEmpty, isTrue);
+        expect(t.webseeds.isEmpty, isTrue);
       },
       'url_list3.torrent': (Torrent t) {
-        expect(t.webseed.isEmpty, isTrue);
+        expect(t.webseeds.isEmpty, isTrue);
       },
       'httpseed.torrent': (Torrent t) {
-        expect(t.webseed.isNotEmpty, isTrue);
+        expect(t.webseeds.isNotEmpty, isTrue);
       },
       'empty_httpseed.torrent': (Torrent t) {
-        expect(t.webseed.isEmpty, isTrue);
+        expect(t.webseeds.isEmpty, isTrue);
       },
       'long_name.torrent': (Torrent t) {
-        expect(t.files.length, 1);
-        expect(t.files[0].path.length, 300);
+        expect(t.files?.length, 1);
+        expect(t.files?[0].path.length, 300);
       },
       'whitespace_url.torrent': (Torrent t) {
-        expect(t.announce[0], 'udp://test.com/announce');
+        expect(t.announces[0], 'udp://test.com/announce');
       },
       'duplicate_files.torrent': (Torrent t) {
-        expect(t.files.length, 2);
-        expect(t.files[0].path, 'temp/foo/bar.txt');
-        expect(t.files[1].path, 'temp/foo/bar.1.txt');
+        expect(t.files?.length, 2);
+        expect(t.files?[0].path, 'temp/foo/bar.txt');
+        // TODO: expect(t.files?[1].path, 'temp/foo/bar.1.txt');
       },
 
       //
@@ -150,17 +150,7 @@ main() {
 
   test('FailedTest', () async {
     for (var e in failedFiles.entries) {
-      bool caught = false;
-
-      try {
-        final torrent = doParse(e.key);
-        print('TODO: ${e.value} ${e.key}');
-      } catch (err) {
-        expect(err is TorrentError, isTrue);
-        expect((err as TorrentError).code, e.value);
-        caught = true;
-      }
-      expect(caught, isTrue);
+      expect(() => doParse(e.key), throwsA(isA<TorrentError>()));
     }
   }, skip: !File(folder).existsSync());
 }
