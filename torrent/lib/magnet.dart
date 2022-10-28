@@ -5,17 +5,27 @@ import 'src/endpoint.dart';
 
 import 'error.dart';
 
-class AddParam {
+class InfoHash {
+  const InfoHash(this.v1, this.v2);
+
+  final Digest? v1;
+  final Digest? v2;
+
+  bool get hasV1 => v1 != null;
+  bool get hasV2 => v2 != null;
+}
+
+class Magnet {
   final String? name;
-  final InfoHash infoHashes;
+  final InfoHash infoHashe;
   final List<String> urlSeeds;
   final List<Endpoint> peers;
   final List<Endpoint> dhtNodes;
   final List<String> trackers;
 
-  AddParam({
+  Magnet({
     this.name,
-    required this.infoHashes,
+    required this.infoHashe,
     List<String>? urlSeeds,
     List<Endpoint>? peers,
     List<Endpoint>? dhtNodes,
@@ -30,7 +40,7 @@ class AddParam {
   // TODO: peers
   // TODO: ...
 
-  static AddParam parse(String uri) {
+  static Magnet parse(String uri) {
     uri = uri.trim();
 
     if (uri.substring(0, 8) != 'magnet:?') {
@@ -91,10 +101,10 @@ class AddParam {
       }
     });
 
-    return AddParam(
+    return Magnet(
       name: m['dn'],
       urlSeeds: ma['ws'],
-      infoHashes: InfoHash(v1, v2),
+      infoHashe: InfoHash(v1, v2),
       peers: ma['x.pe']
           ?.map((e) => Endpoint.tryParse(e))
           .where((v) => v != null)
@@ -108,14 +118,4 @@ class AddParam {
       trackers: trs,
     );
   }
-}
-
-class InfoHash {
-  const InfoHash(this.v1, this.v2);
-
-  final Digest? v1;
-  final Digest? v2;
-
-  bool get hasV1 => v1 != null;
-  bool get hasV2 => v2 != null;
 }

@@ -6,7 +6,7 @@ import 'package:torrent/src/file_storage.dart';
 import 'package:torrent/src/url_utils.dart';
 
 import 'error.dart';
-import 'magnet_uri.dart';
+import 'magnet.dart';
 
 ///
 int? _castInt(Object? v) {
@@ -160,8 +160,8 @@ class Torrent {
     if (info == null) {
       final uri = _castString(top['magnet-uri']);
       if (uri != null) {
-        final p = AddParam.parse(uri);
-        // infoHashs
+        final p = Magnet.parse(uri);
+        // infoHash
         // urls
         return null;
       }

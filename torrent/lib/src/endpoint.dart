@@ -1,6 +1,6 @@
 import 'dart:io';
 
-/// Simply wrap for ip:port like 127.0.0.1:80
+/// Simply wrap ip:port like 127.0.0.1:80, [::1]:43
 class Endpoint {
   final InternetAddress addr;
   final int port;
