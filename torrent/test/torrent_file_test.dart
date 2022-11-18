@@ -13,6 +13,23 @@ Torrent? doParse(String filename) {
   return Torrent.parse(bytes);
 }
 
+class CodeMatch extends Matcher {
+  final ErrorCode code;
+  const CodeMatch(this.code);
+  @override
+  bool matches(Object? item, Map matchState) {
+    if (item is TorrentError) {
+      return item.code == code;
+    }
+    addStateInfo(matchState, {'type': item});
+    return false;
+  }
+
+  @override
+  Description describe(Description description) =>
+      description.add('code not match, desire $code');
+}
+
 main() {
   test('ParseTest', () {
     // final fn = '../torrent_tracker/example/test.torrent';
@@ -94,6 +111,9 @@ main() {
         expect(t.files?[0].path, 'temp/foo/bar.txt');
         // TODO: expect(t.files?[1].path, 'temp/foo/bar.1.txt');
       },
+      'pad_file.torrent': (t) {
+        expect(t.files?.length, 2);
+      }
 
       //
       // 'v2.torrent': (t) {},
@@ -112,45 +132,45 @@ main() {
     "no_name.torrent": ErrorCode.torrentMissingName,
     "bad_name.torrent": ErrorCode.torrentMissingName,
     "invalid_name.torrent": ErrorCode.torrentMissingName,
-    // "invalid_info.torrent": ErrorCode.torrentMissingInfo,
-    // "string.torrent": ErrorCode.torrentIsNoDict,
-    // "negative_size.torrent": ErrorCode.torrentInvalidLength,
-    // "negative_file_size.torrent": ErrorCode.torrentInvalidLength,
-    // "invalid_path_list.torrent": ErrorCode.torrentInvalidName,
-    // "missing_path_list.torrent": ErrorCode.torrentMissingName,
-    // "invalid_pieces.torrent": ErrorCode.torrentMissingPieces,
-    // "unaligned_pieces.torrent": ErrorCode.torrentInvalidHashes,
-    // "invalid_file_size.torrent": ErrorCode.torrentInvalidLength,
-    // "invalid_symlink.torrent": ErrorCode.torrentInvalidName,
-    // "many_pieces.torrent": ErrorCode.tooManyPiecesInTorrent,
-    // "no_files.torrent": ErrorCode.noFilesInTorrent,
-    // "zero.torrent": ErrorCode.torrentInvalidLength,
-    // "zero2.torrent": ErrorCode.torrentInvalidLength,
-    // "v2_mismatching_metadata.torrent": ErrorCode.torrentInconsistentFiles,
-    // "v2_no_power2_piece.torrent": ErrorCode.torrentMissingPieceLength,
-    // "v2_invalid_file.torrent": ErrorCode.torrentFileParseFailed,
-    // "v2_deep_recursion.torrent": ErrorCode.torrentFileParseFailed,
-    // "v2_non_multiple_piece_layer.torrent": ErrorCode.torrentInvalidPieceLayer,
-    // "v2_piece_layer_invalid_file_hash.torrent":
-    //     ErrorCode.torrentInvalidPieceLayer,
-    // "v2_invalid_piece_layer.torrent": ErrorCode.torrentInvalidPieceLayer,
-    // "v2_invalid_piece_layer_size.torrent": ErrorCode.torrentInvalidPieceLayer,
-    // "v2_bad_file_alignment.torrent": ErrorCode.torrentInconsistentFiles,
-    // "v2_unordered_files.torrent": ErrorCode.invalidBencoding,
-    // "v2_overlong_integer.torrent": ErrorCode.invalidBencoding,
-    // "v2_missing_file_root_invalid_symlink.torrent":
-    //     ErrorCode.torrentMissingPiecesRoot,
-    // "v2_large_file.torrent": ErrorCode.torrentInvalidLength,
-    // "v2_large_offset.torrent": ErrorCode.tooManyPiecesInTorrent,
-    // "v2_piece_size.torrent": ErrorCode.torrentMissingPieceLength,
-    // "v2_invalid_pad_file.torrent": ErrorCode.torrentInvalidPadFile,
-    // "v2_zero_root.torrent": ErrorCode.torrentMissingPiecesRoot,
-    // "v2_zero_root_small.torrent": ErrorCode.torrentMissingPiecesRoot,
+    "invalid_info.torrent": ErrorCode.torrentMissingInfo,
+    "string.torrent": ErrorCode.torrentIsNoDict,
+    "negative_size.torrent": ErrorCode.torrentInvalidLength,
+    "negative_file_size.torrent": ErrorCode.torrentInvalidLength,
+    "invalid_path_list.torrent": ErrorCode.torrentInvalidName,
+    "missing_path_list.torrent": ErrorCode.torrentMissingName,
+    "invalid_pieces.torrent": ErrorCode.torrentMissingPieces,
+    "unaligned_pieces.torrent": ErrorCode.torrentInvalidHashes,
+    "invalid_file_size.torrent": ErrorCode.torrentInvalidLength,
+    "invalid_symlink.torrent": ErrorCode.torrentInvalidName,
+    "many_pieces.torrent": ErrorCode.tooManyPiecesInTorrent,
+    "no_files.torrent": ErrorCode.noFilesInTorrent,
+    "zero.torrent": ErrorCode.torrentInvalidLength,
+    "zero2.torrent": ErrorCode.torrentInvalidLength,
+    "v2_mismatching_metadata.torrent": ErrorCode.torrentInconsistentFiles,
+    "v2_no_power2_piece.torrent": ErrorCode.torrentMissingPieceLength,
+    "v2_invalid_file.torrent": ErrorCode.torrentFileParseFailed,
+    "v2_deep_recursion.torrent": ErrorCode.torrentFileParseFailed,
+    "v2_non_multiple_piece_layer.torrent": ErrorCode.torrentInvalidPieceLayer,
+    "v2_piece_layer_invalid_file_hash.torrent":
+        ErrorCode.torrentInvalidPieceLayer,
+    "v2_invalid_piece_layer.torrent": ErrorCode.torrentInvalidPieceLayer,
+    "v2_invalid_piece_layer_size.torrent": ErrorCode.torrentInvalidPieceLayer,
+    "v2_bad_file_alignment.torrent": ErrorCode.torrentInconsistentFiles,
+    "v2_unordered_files.torrent": ErrorCode.invalidBencoding,
+    "v2_overlong_integer.torrent": ErrorCode.invalidBencoding,
+    "v2_missing_file_root_invalid_symlink.torrent":
+        ErrorCode.torrentMissingPiecesRoot,
+    "v2_large_file.torrent": ErrorCode.torrentInvalidLength,
+    "v2_large_offset.torrent": ErrorCode.tooManyPiecesInTorrent,
+    "v2_piece_size.torrent": ErrorCode.torrentMissingPieceLength,
+    "v2_invalid_pad_file.torrent": ErrorCode.torrentInvalidPadFile,
+    "v2_zero_root.torrent": ErrorCode.torrentMissingPiecesRoot,
+    "v2_zero_root_small.torrent": ErrorCode.torrentMissingPiecesRoot,
   };
 
   test('FailedTest', () async {
     for (var e in failedFiles.entries) {
-      expect(() => doParse(e.key), throwsA(isA<TorrentError>()));
+      expect(() => doParse(e.key), throwsA(CodeMatch(e.value)));
     }
   }, skip: !File(folder).existsSync());
 }

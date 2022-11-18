@@ -52,6 +52,7 @@ List<String>? _castStringList(Object? v) {
   return null;
 }
 
+///
 class Torrent {
   final String? name;
   final String? comment;
@@ -78,75 +79,8 @@ class Torrent {
 
   List<File>? get files => storage?.files;
 
-  // {created by: libtorrent, creation date: 1359599503,
-  //  info: {length: 0, name: temp, piece length: 16384, pieces: }}
-
-  // info, one file:
-  //  length, name, piece length, pieces
-  // info multiple files:
-  //  piece length
-  //  file tree: name => {'':{length, pieces root}}
-  //  meta version
-  //  name
-
-  // piece layers: {name: hash?}
-
-  // nodes: []
-
   @override
   String toString() => 'Torrent($name)';
-
-  static buildV2(FileStorage storage, Object fileTree, Map info) {
-    if (fileTree is! Map) {
-      throw TorrentError(ErrorCode.torrentFileParseFailed);
-    }
-  }
-
-  static buildV1(FileStorage storage, Object files, Map info, String root,
-      Uint8List pieces) {
-    if (files is List) {
-      for (var file in files) {
-        if (file is Map) {
-          buildSingleFile(storage, file, root, pieces);
-        }
-      }
-    }
-  }
-
-  static buildSingleFile(
-      FileStorage storage, Map info, String root, Uint8List pieces) {
-    String? pathKey;
-
-    if (info.containsKey('path.utf-8')) {
-      pathKey = 'path.utf-8';
-    } else if (info.containsKey('path')) {
-      pathKey = 'path';
-    }
-
-    String? path;
-
-    if (pathKey != null && info[pathKey] is List) {
-      path =
-          (info[pathKey] as List).map((x) => String.fromCharCodes(x)).join('/');
-
-      path = '$root/$path';
-    } else {
-      path ??= root;
-    }
-
-    path = sanitizePath(path);
-
-    final mtime = _castInt(info['mtime']);
-
-    storage.add(
-      File(
-        path: path,
-        size: _castInt(info['length']) ?? 0,
-        filehash: Digest(pieces),
-        mtime: mtime,
-      ),
-    );
-  }
 
   static Torrent? parse(Uint8List content) {
     final map = decodeBytes(content);
@@ -170,7 +104,6 @@ class Torrent {
     }
 
     // parse info section
-
     if (info is! Map) {
       throw TorrentError(ErrorCode.torrentInfoNoDict);
     }
@@ -211,7 +144,7 @@ class Torrent {
     // storage
     final storage = FileStorage(
       pieceLenth: pieceLength,
-      name: name,
+      name: path, // sanitize name as path
     );
 
     final pieces = info['pieces'];
@@ -223,11 +156,14 @@ class Torrent {
     final files = info['files'];
 
     if (version >= 2 && fileTree != null) {
-      buildV2(storage, fileTree, info);
+      storage.buildV2(fileTree, info);
     } else if (files != null) {
-      buildV1(storage, files, info, name, pieces);
+      storage.buildV1(files, pieces);
     } else {
-      buildSingleFile(storage, info, name, pieces);
+      final length = info['length'];
+
+      storage.buildSingleFile(
+          length: length, mtime: _castInt(info['mtime']), pieces: pieces);
     }
 
     // throw TorrentError(ErrorCode.torrentMissingFileTree);
@@ -251,8 +187,9 @@ class Torrent {
 
     return Torrent(
       name: name,
-      createdBy: _castString(top['createdBy']),
-      comment: _castString(top['comment']),
+      createdBy: _castString(top['created by.utf-8']) ??
+          _castString(top['created by']),
+      comment: _castString(top['comment.utf-8']) ?? _castString(top['comment']),
       ctime: _castDate(top['creation date']),
       announces: announce,
       webseeds: webseeds.where((e) => e.isNotEmpty).toList(),
