@@ -32,8 +32,7 @@ Uri? sanitizeUrl(String? url) {
     return null;
   }
 
-  url = url.trim();
-  final u = Uri.parse(url);
+  final u = Uri.parse(url.trim());
   if (u.hasScheme &&
       <String>{'http', 'https', 'udp', 'ws', 'wss'}.contains(u.scheme)) {
     return u;

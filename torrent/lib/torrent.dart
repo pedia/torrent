@@ -233,7 +233,7 @@ class Torrent {
     // throw TorrentError(ErrorCode.torrentMissingFileTree);
 
     // http seeds
-    final webseed = _castByteStringList(top['url-list'])
+    final webseeds = _castByteStringList(top['url-list'])
         .map((e) => sanitizeUrl(e))
         .takeWhile((e) => e != null)
         .toSet()
@@ -244,22 +244,24 @@ class Torrent {
         .takeWhile((e) => e != null)
         .toSet()
         .cast<Uri>();
-    if (seeds != null) webseed.addAll(seeds);
+    if (seeds != null) webseeds.addAll(seeds);
 
     //
-    final announce = _castByteStringList(top['announce-list'])
+    final announces = _castByteStringList(top['announce-list'])
         .map((e) => sanitizeUrl(e))
         .takeWhile((e) => e != null)
         .toSet()
         .cast<Uri>();
+    final announce = sanitizeUrl(_castString(top['announce']));
+    if (announce != null) announces.add(announce);
 
     return Torrent(
       name: name,
       createdBy: _castString(top['createdBy']),
       comment: _castString(top['comment']),
       ctime: _castDate(top['creation date']),
-      announces: announce,
-      webseeds: webseed,
+      announces: announces,
+      webseeds: webseeds,
       storage: storage,
     );
   }
