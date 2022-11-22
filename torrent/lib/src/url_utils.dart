@@ -27,6 +27,16 @@ String sanitizePath(String path) {
 }
 
 ///
-String? sanitizeUrl(String? url) {
-  return url?.trim();
+Uri? sanitizeUrl(String? url) {
+  if (url == null) {
+    return null;
+  }
+
+  url = url.trim();
+  final u = Uri.parse(url);
+  if (u.hasScheme &&
+      <String>{'http', 'https', 'udp', 'ws', 'wss'}.contains(u.scheme)) {
+    return u;
+  }
+  return null;
 }
