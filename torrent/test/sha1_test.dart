@@ -15,8 +15,8 @@ class Digest32<N> {
 }
 
 main() {
-  test('description', () {
-    final d = sha1.convert('data'.codeUnits);
+  test('sha1-length', () {
+    final d = sha1.convert('dummy'.codeUnits);
     expect(d.toString().length, 40);
   });
 }
