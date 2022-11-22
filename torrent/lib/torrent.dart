@@ -58,8 +58,8 @@ class Torrent {
   final String? comment;
   final String? createdBy;
   final DateTime? ctime;
-  final List<String> announces;
-  final List<String> webseeds;
+  final Set<Uri> announces;
+  final Set<Uri> webseeds;
 
   final int version;
 
@@ -71,11 +71,11 @@ class Torrent {
     this.comment,
     this.createdBy,
     this.ctime,
-    List<String>? announces,
-    List<String>? webseeds,
+    Set<Uri>? announces,
+    Set<Uri>? webseeds,
     this.storage,
-  })  : announces = announces ?? [],
-        webseeds = webseeds ?? [];
+  })  : announces = announces ?? <Uri>{},
+        webseeds = webseeds ?? <Uri>{};
 
   List<File>? get files => storage?.files;
 
@@ -169,21 +169,27 @@ class Torrent {
     // throw TorrentError(ErrorCode.torrentMissingFileTree);
 
     // http seeds
-    final webseeds = _castByteStringList(top['url-list']);
-    final s2 = _castStringList(top['httpseeds']);
-    if (s2 != null) {
-      webseeds.addAll(s2);
-    }
+    final webseeds = _castByteStringList(top['url-list'])
+        .map((e) => sanitizeUrl(e))
+        .takeWhile((e) => e != null)
+        .toSet()
+        .cast<Uri>();
 
-    // TODO: trim, filter empty
+    final seeds = _castStringList(top['httpseeds'])
+        ?.map((e) => sanitizeUrl(e))
+        .takeWhile((e) => e != null)
+        .toSet()
+        .cast<Uri>();
+    if (seeds != null) webseeds.addAll(seeds);
 
     //
-    final announce = _castByteStringList(top['announce-list']);
-
-    String? url = sanitizeUrl(_castString(top['announce']));
-    if (url != null && url.isNotEmpty) {
-      announce.insert(0, url);
-    }
+    final announces = _castByteStringList(top['announce-list'])
+        .map((e) => sanitizeUrl(e))
+        .takeWhile((e) => e != null)
+        .toSet()
+        .cast<Uri>();
+    final announce = sanitizeUrl(_castString(top['announce']));
+    if (announce != null) announces.add(announce);
 
     return Torrent(
       name: name,
@@ -191,8 +197,8 @@ class Torrent {
           _castString(top['created by']),
       comment: _castString(top['comment.utf-8']) ?? _castString(top['comment']),
       ctime: _castDate(top['creation date']),
-      announces: announce,
-      webseeds: webseeds.where((e) => e.isNotEmpty).toList(),
+      announces: announces,
+      webseeds: webseeds,
       storage: storage,
     );
   }

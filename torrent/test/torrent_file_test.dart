@@ -104,7 +104,7 @@ main() {
         expect(t.files?[0].path.length, 300);
       },
       'whitespace_url.torrent': (Torrent t) {
-        expect(t.announces[0], 'udp://test.com/announce');
+        expect(t.announces.contains(Uri.parse('udp://test.com/announce')), isTrue);
       },
       'duplicate_files.torrent': (Torrent t) {
         expect(t.files?.length, 2);
