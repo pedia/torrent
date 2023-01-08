@@ -1,21 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:libtorrent/libtorrent.dart';
 import 'tile.dart';
 import 'session_panel.dart';
 import 'stats.dart';
+import 'torrent.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<HomePage> {
+
+
+class _HomePageState extends State<HomePage> {
   int _counter = 0;
   late Session sess;
-  final handles = <int, Handle>{};
+  final torrents = <int, Torrent>{};
   late Timer timer;
   final stats = Stats();
   int _tick = 0;
@@ -28,19 +30,20 @@ class _MyHomePageState extends State<HomePage> {
 
     for (int i = 0; i < as.length; i++) {
       final a = as.itemOf(i);
+
       if (!a.what.endsWith('log') &&
           a.what != 'stats' &&
           a.what != 'session_stats' &&
-          !a.what.endsWith('ing')) print(a);
+          !a.what.endsWith('ing')) print('$a ${a.cast()}');
 
       if (a.type == 57) {
-        final sa = a.toStatsAlert();
+        final sa = a.toStats();
         if (sa != null) {
           stats.apply(StatsItem.from(sa));
         }
         continue;
       } else if (a.type == 70) {
-        final ssa = a.toSessionStatsAlert();
+        final ssa = a.toSessionStats();
         if (ssa != null) {
           stats.tick(ssa);
         }
@@ -49,7 +52,7 @@ class _MyHomePageState extends State<HomePage> {
 
       final h = a.torrentHandle;
       if (h != null) {
-        setState(() => handles[h.id] = h);
+        setState(() => torrents[h.id] = Torrent(h));
       }
     }
     if (_tick++ % 2 == 0) {
@@ -87,10 +90,10 @@ class _MyHomePageState extends State<HomePage> {
           AlertCategory.blockProgress |
           AlertCategory.tracker |
           AlertCategory.performanceWarning |
-          AlertCategory.dht |
+          // AlertCategory.dht |
           AlertCategory.stats |
-          AlertCategory.sessionLog |
-          AlertCategory.torrentLog |
+          // AlertCategory.sessionLog |
+          // AlertCategory.torrentLog |
           // too much: AlertCategory.dhtLog |
           AlertCategory.portMappingLog |
           AlertCategory.status,
@@ -110,17 +113,22 @@ class _MyHomePageState extends State<HomePage> {
         title: Text('$_counter'),
         actions: [
           IconButton(
-              onPressed: () {
-                sess.add(AddTorrentParams.parseMagnet(
-                  'magnet:?xt=urn:btih:3c80d623bf867337d843d3727cae7053b23e9b4e',
-                  '.',
-                ));
-                sess.add(AddTorrentParams.parseMagnet(
-                  'magnet:?xt=urn:btih:0497dca6eaf2340ce4f1a982047dcafa738a6170',
-                  '.',
-                ));
-              },
-              icon: const Icon(Icons.start))
+            icon: Icon(sess.isPaused() ? Icons.start : Icons.pause),
+            onPressed: () => sess.isPaused() ? sess.resume() : sess.pause(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              sess.add(AddTorrentParams.parseMagnet(
+                'magnet:?xt=urn:btih:3c80d623bf867337d843d3727cae7053b23e9b4e',
+                '.',
+              ));
+              sess.add(AddTorrentParams.parseMagnet(
+                'magnet:?xt=urn:btih:0497dca6eaf2340ce4f1a982047dcafa738a6170',
+                '.',
+              ));
+            },
+          )
         ],
       ),
       body: Padding(
@@ -130,9 +138,9 @@ class _MyHomePageState extends State<HomePage> {
               SessionPanel(stats: stats),
               Expanded(
                 child: ListView.builder(
-                  itemCount: handles.length,
+                  itemCount: torrents.length,
                   itemBuilder: (context, index) => Tile(
-                    handle: handles.entries.toList()[index].value,
+                    handle: torrents.entries.toList()[index].value.handle,
                   ),
                 ),
               ),

@@ -1,4 +1,4 @@
-import 'package:libtorrent/libtorrent.dart';
+import 'torrent.dart';
 
 class WithTime<T> {
   final T t;
@@ -42,40 +42,40 @@ class StatsItem {
 
 class Stats {
   final stats = <WithTime<StatsItem>>[];
-  final int count = 100;
+  final int count = 2;
   final sessionStats = <WithTime<List<int>>>[];
 
   void apply(StatsItem item, {DateTime? when}) {
     stats.add(WithTime(item, when: when));
 
-    if (stats.length > count) {
+    while (stats.length > count) {
       stats.removeAt(0);
     }
   }
 
-  Speed get speedOfUpload {
+  Dimension get speedOfUpload {
     if (stats.isNotEmpty) {
       int s = 0;
       for (var e in stats.sublist(1)) {
         s += e.t.uploadProtocol;
       }
       final t = stats.last.when.difference(stats.first.when).inMicroseconds;
-      return t == 0 ? Speed(0) : Speed(s * 1e6 ~/ t);
+      return t == 0 ? Dimension.zeroSpeed : Dimension.speed(s * 1e6 ~/ t);
     }
 
-    return Speed.zero;
+    return Dimension.zeroSpeed;
   }
 
-  Speed get speedOfDownload {
+  Dimension get speedOfDownload {
     if (stats.isNotEmpty) {
       int s = 0;
       for (var e in stats.sublist(1)) {
         s += e.t.downloadProtocol;
       }
       final t = stats.last.when.difference(stats.first.when).inMicroseconds;
-      return t == 0 ? Speed(0) : Speed(s * 1e6 ~/ t);
+      return t == 0 ? Dimension.zeroSpeed : Dimension.speed(s * 1e6 ~/ t);
     }
-    return Speed.zero;
+    return Dimension.zeroSpeed;
   }
 
   void tick(SessionStatsAlert ssa) {
@@ -83,7 +83,7 @@ class Stats {
     final vals = List<int>.from(ssa.counters);
     sessionStats.add(WithTime(vals));
 
-    if (sessionStats.length > count) {
+    while (sessionStats.length > count) {
       sessionStats.removeAt(0);
     }
   }
@@ -91,28 +91,34 @@ class Stats {
   static final int idxD = SessionStatsAlert.findMetricIdx('net.recv_bytes');
   static final int idxU = SessionStatsAlert.findMetricIdx('net.sent_bytes');
 
-  Speed of(int idx) {
+  Dimension of(int idx) {
     if (sessionStats.isEmpty) {
-      return Speed.zero;
+      return Dimension.zeroSpeed;
     }
-    
+
     final s = sessionStats.last.t[idx] - sessionStats.first.t[idx];
     final t = sessionStats.last.when
         .difference(sessionStats.first.when)
         .inMicroseconds;
 
-    return t == 0 ? Speed(0) : Speed(s * 1e6 ~/ t);
+    return t == 0 ? Dimension.zeroSpeed : Dimension.speed(s * 1e6 ~/ t);
   }
 
-  Speed get rateOfD => of(idxD);
-  Speed get rateOfU => of(idxU);
+  Dimension get rateOfD => of(idxD);
+  Dimension get rateOfU => of(idxU);
 }
 
-class Speed {
-  final int speed;
-  Speed(this.speed);
+class Dimension {
+  factory Dimension.speed(int dim) => Dimension(dim, postfix: '/s');
+  factory Dimension.size(int dim) => Dimension(dim);
+  factory Dimension.duration(int dim) => DurationDimension(dim);
 
-  static Speed zero = Speed(0);
+  static Dimension zeroSpeed = Dimension.speed(0);
+  static Dimension zeroSize = Dimension.size(0);
+
+  final int dim;
+  final String postfix;
+  Dimension(this.dim, {this.postfix = ''});
 
   static const g = 1024 * 1024 * 1024;
   static const m = 1024 * 1024;
@@ -124,27 +130,62 @@ class Speed {
   }
 
   String get unit {
-    if (speed > g) {
-      return 'GB/s';
-    } else if (speed > m) {
-      return 'MB/s';
-    } else if (speed > k) {
-      return 'KB/s';
+    if (dim > g) {
+      return 'GB$postfix';
+    } else if (dim > m) {
+      return 'MB$postfix';
+    } else if (dim > k) {
+      return 'KB$postfix';
     }
-    return 'B/s';
+    return 'B$postfix';
   }
 
   String get readable {
-    if (speed > g) {
-      double d = speed / g;
+    if (dim > g) {
+      double d = dim / g;
       return d.toStringAsFixed(1);
-    } else if (speed > m) {
-      double d = speed / m;
+    } else if (dim > m) {
+      double d = dim / m;
       return d.toStringAsFixed(1);
-    } else if (speed > k) {
-      double d = speed / k;
+    } else if (dim > k) {
+      double d = dim / k;
       return d.toStringAsFixed(0);
     }
-    return speed.toString();
+    return dim.toString();
+  }
+}
+
+class DurationDimension extends Dimension {
+  DurationDimension(super.dim);
+
+  static const day = 86400;
+  static const hour = 3600;
+  static const minute = 60;
+
+  @override
+  String get unit {
+    if (dim > day) {
+      return 'day';
+    } else if (dim > hour) {
+      return 'hour';
+    } else if (dim > minute) {
+      return 'minute';
+    }
+    return 'second';
+  }
+
+  @override
+  String get readable {
+    if (dim > day) {
+      double d = dim / day;
+      return d.toStringAsFixed(1);
+    } else if (dim > hour) {
+      double d = dim / hour;
+      return d.toStringAsFixed(1);
+    } else if (dim > minute) {
+      double d = dim / minute;
+      return d.toStringAsFixed(0);
+    }
+    return dim.toString();
   }
 }
