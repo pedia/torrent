@@ -10,8 +10,8 @@ import 'torrent.dart';
 // 2/3  9 KB          finished file count / file count, speed
 //
 class Tile extends StatefulWidget {
-  final Handle handle;
-  const Tile({super.key, required this.handle});
+  final Torrent t;
+  const Tile(this.t, {super.key});
 
   @override
   State<Tile> createState() => _TileState();
@@ -23,20 +23,20 @@ class _TileState extends State<Tile> {
     if (n1.isNotEmpty) {
       return n1;
     }
-    return h.id.toUnsigned(32).toRadixString(16);
+    return h.id.toString();
   }
 
   bool action = false;
 
   @override
   Widget build(BuildContext context) {
-    final status = widget.handle.status;
-    final info = widget.handle.info;
+    final status = widget.t.handle.status;
+    final info = widget.t.handle.info;
     return Column(
       children: [
         ListTile(
           tileColor: colorForState(status.state),
-          title: SelectableText(pretty(widget.handle)),
+          title: SelectableText(pretty(widget.t.handle)),
           onTap: () => setState(() => action = !action),
           contentPadding: const EdgeInsets.symmetric(vertical: 4),
           subtitle: LinearProgressIndicator(
@@ -51,13 +51,21 @@ class _TileState extends State<Tile> {
         // Text(info.comment),
         // Text(
         //     '${Dimension.size(info.totalSize)} ${Dimension.size(info.sizeOnDisk)}'),
-        if (action)
-          ...List.generate(info.numFiles,
-              (i) => ListTile(title: Text(info.files.fileName(i)))).toList(),
+        if (action) FilesView(widget.t),
         if (action)
           SizedBox(
+            // preferredSize: const Size.fromHeight(200),
             height: 200,
             child: StatusPanel(status),
+          ),
+        if (action)
+          Row(
+            children: [
+              OutlinedButton(
+                child: const Text('save resume'),
+                onPressed: () => widget.t.handle.saveResumeData(),
+              ),
+            ],
           ),
       ],
     );
@@ -66,7 +74,7 @@ class _TileState extends State<Tile> {
   Color? colorForState(int state) => {
         TorrentState.queuedForChecking: Colors.pinkAccent,
         TorrentState.checkingFiles: Colors.red,
-        TorrentState.downloadingMetadata: Colors.black26,
+        TorrentState.downloadingMetadata: Colors.black12,
         TorrentState.downloading: Colors.transparent,
         TorrentState.finished: Colors.green,
         TorrentState.seeding: Colors.blue,
@@ -75,16 +83,30 @@ class _TileState extends State<Tile> {
       }[state];
 }
 
-class FileView extends StatelessWidget {
-  final String fileName;
-  final String filePath;
-  const FileView(this.fileName, this.filePath, {super.key});
+class FilesView extends StatelessWidget {
+  final Torrent t;
+  FilesView(this.t, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(fileName),
-      onTap: () {},
+    final files = t.handle.info.files;
+    return SizedBox(
+      height: 200,
+      child: ListView(
+        children: List.generate(
+          files.numFiles,
+          (i) => ListTile(
+            title: Text(files.fileName(i)),
+            subtitle: Text(Dimension.size(files.fileSize(i)).toString()),
+            onTap: () {
+              t.queryFileSize();
+
+              // TODO: order wrong?
+              debugPrint('sizes: ${t.sizes}');
+            },
+          ),
+        ),
+      ),
     );
   }
 }

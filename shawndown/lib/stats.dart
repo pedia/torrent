@@ -1,4 +1,5 @@
-import 'torrent.dart';
+import 'package:libtorrent/libtorrent.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 class WithTime<T> {
   final T t;
@@ -40,9 +41,9 @@ class StatsItem {
   }
 }
 
-class Stats {
+class Stats extends Model {
   final stats = <WithTime<StatsItem>>[];
-  final int count = 2;
+  final int count = 20;
   final sessionStats = <WithTime<List<int>>>[];
 
   void apply(StatsItem item, {DateTime? when}) {
@@ -51,6 +52,7 @@ class Stats {
     while (stats.length > count) {
       stats.removeAt(0);
     }
+    notifyListeners();
   }
 
   Dimension get speedOfUpload {
@@ -79,13 +81,14 @@ class Stats {
   }
 
   void tick(SessionStatsAlert ssa) {
-    // Should clone data in alert
+    // Must clone data in the alert
     final vals = List<int>.from(ssa.counters);
     sessionStats.add(WithTime(vals));
 
     while (sessionStats.length > count) {
       sessionStats.removeAt(0);
     }
+    notifyListeners();
   }
 
   static final int idxD = SessionStatsAlert.findMetricIdx('net.recv_bytes');
@@ -106,6 +109,8 @@ class Stats {
 
   Dimension get rateOfD => of(idxD);
   Dimension get rateOfU => of(idxU);
+
+  int get currentD => sessionStats.isEmpty ? 0 : sessionStats.last.t[idxD];
 }
 
 class Dimension {
