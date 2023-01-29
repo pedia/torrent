@@ -10,8 +10,9 @@ import 'torrent.dart';
 // 2/3  9 KB          finished file count / file count, speed
 //
 class Tile extends StatefulWidget {
-  final Torrent t;
   const Tile(this.t, {super.key});
+
+  final Torrent t;
 
   @override
   State<Tile> createState() => _TileState();
@@ -38,12 +39,14 @@ class _TileState extends State<Tile> {
           tileColor: colorForState(status.state),
           title: SelectableText(pretty(widget.t.handle)),
           onTap: () => setState(() => action = !action),
-          contentPadding: const EdgeInsets.symmetric(vertical: 4),
-          subtitle: LinearProgressIndicator(
-            value: status.progress,
-            color: Colors.green,
-            minHeight: 4,
-          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          subtitle: action
+              ? null
+              : LinearProgressIndicator(
+                  value: status.progress,
+                  color: Colors.green,
+                  minHeight: 4,
+                ),
         ),
         // Text(info.name),
         // Text(info.creator),
@@ -62,8 +65,8 @@ class _TileState extends State<Tile> {
           Row(
             children: [
               OutlinedButton(
+                onPressed: widget.t.handle.saveResumeData,
                 child: const Text('save resume'),
-                onPressed: () => widget.t.handle.saveResumeData(),
               ),
             ],
           ),
@@ -84,8 +87,8 @@ class _TileState extends State<Tile> {
 }
 
 class FilesView extends StatelessWidget {
+  const FilesView(this.t, {super.key});
   final Torrent t;
-  FilesView(this.t, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +105,7 @@ class FilesView extends StatelessWidget {
               t.queryFileSize();
 
               // TODO: order wrong?
-              debugPrint('sizes: ${t.sizes}');
+              debugPrint('sizes: ${t.sizes} ${t.handle.fileProgress}');
             },
           ),
         ),

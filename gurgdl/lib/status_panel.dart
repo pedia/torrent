@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:libtorrent/gen/libtorrent.dart' show Status;
+import 'package:libtorrent/gen/libtorrent.g.dart' show Status;
 
 import 'stats.dart';
 
 class Item {
+  Item(this.name, this.fetch, [this.comment]);
+
   final String name;
   final Object Function() fetch;
   final String? comment;
-
-  Item(this.name, this.fetch, [this.comment]);
 }
 
 class StatusPanel extends StatelessWidget {
-  final Status status;
   const StatusPanel(this.status, {super.key});
+  final Status status;
 
   List<Item> items() => [
         Item('state', () => status.state),
@@ -22,18 +22,18 @@ class StatusPanel extends StatelessWidget {
         Item(
             'total_download',
             () => status.total_download,
-            'the number of bytes downloaded and uploaded to all peers, accumulated,'
-                '*this session* only. The session is considered to restart when a'
-                'torrent is paused and restarted again. When a torrent is paused, these'
-                'counters are reset to 0. If you want complete, persistent, stats, see'
+            'the number of bytes downloaded and uploaded to all peers, accumulated, '
+                '*this session* only. The session is considered to restart when a '
+                'torrent is paused and restarted again. When a torrent is paused, these '
+                'counters are reset to 0. If you want complete, persistent, stats, see '
                 '``all_time_upload`` and ``all_time_download``.'),
         Item(
             'total_upload',
             () => status.total_upload,
-            'the number of bytes downloaded and uploaded to all peers, accumulated,'
-                '*this session* only. The session is considered to restart when a'
-                'torrent is paused and restarted again. When a torrent is paused, these'
-                'counters are reset to 0. If you want complete, persistent, stats, see'
+            'the number of bytes downloaded and uploaded to all peers, accumulated, '
+                '*this session* only. The session is considered to restart when a '
+                'torrent is paused and restarted again. When a torrent is paused, these '
+                'counters are reset to 0. If you want complete, persistent, stats, see '
                 '``all_time_upload`` and ``all_time_download``.'),
         Item('total_payload_download',
             () => Dimension.size(status.total_payload_download)),
@@ -82,21 +82,25 @@ class StatusPanel extends StatelessWidget {
       children: items()
           .map((i) => Row(
                 children: [
+                  // name ? value
+                  // 8    1 8
                   Expanded(
-                      flex: 8, child: Text(i.name, textAlign: TextAlign.right)),
+                    flex: 8,
+                    child: Text(i.name, textAlign: TextAlign.right),
+                  ),
                   Expanded(
-                    flex: 1,
                     child: i.comment != null
                         ? Tooltip(
                             message: i.comment,
-                            child: const Icon(Icons.question_mark, size: 12),
+                            child: const Icon(Icons.info, size: 16),
                           )
                         : Container(),
                   ),
                   Expanded(
-                      flex: 8,
-                      child: Text(i.fetch().toString(),
-                          textAlign: TextAlign.left)),
+                    flex: 8,
+                    child:
+                        Text(i.fetch().toString(), textAlign: TextAlign.left),
+                  ),
                 ],
               ))
           .toList(),

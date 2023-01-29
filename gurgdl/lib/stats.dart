@@ -1,20 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:libtorrent/libtorrent.dart';
-import 'package:scoped_model/scoped_model.dart';
 
 class WithTime<T> {
+  WithTime(this.t, {DateTime? when}) : when = when ?? DateTime.now();
   final T t;
   final DateTime when;
-  WithTime(this.t, {DateTime? when}) : when = when ?? DateTime.now();
 }
 
 class StatsItem {
-  final int uploadPayload;
-  final int uploadProtocol;
-  final int downloadPayload;
-  final int downloadProtocol;
-  final int uploadIpProtocol;
-  final int downloadIpProtocol;
-
   StatsItem(
     this.uploadPayload,
     this.uploadProtocol,
@@ -35,19 +28,32 @@ class StatsItem {
     );
   }
 
+  final int uploadPayload;
+  final int uploadProtocol;
+  final int downloadPayload;
+  final int downloadProtocol;
+  final int uploadIpProtocol;
+  final int downloadIpProtocol;
+
   @override
   String toString() {
     return '$uploadPayload $uploadProtocol $downloadPayload $downloadProtocol $uploadIpProtocol $downloadIpProtocol';
   }
 }
 
-class Stats extends Model {
+class Stats extends ChangeNotifier {
   final stats = <WithTime<StatsItem>>[];
   final int count = 20;
   final sessionStats = <WithTime<List<int>>>[];
 
+  int d1 = 0; // stats.protocol download bytes
+  int d2 = 0; // session stats.protocol download bytes
+
   void apply(StatsItem item, {DateTime? when}) {
     stats.add(WithTime(item, when: when));
+
+    print(item);
+    d1 += item.downloadProtocol;
 
     while (stats.length > count) {
       stats.removeAt(0);
@@ -57,8 +63,8 @@ class Stats extends Model {
 
   Dimension get speedOfUpload {
     if (stats.isNotEmpty) {
-      int s = 0;
-      for (var e in stats.sublist(1)) {
+      var s = 0;
+      for (final e in stats.sublist(1)) {
         s += e.t.uploadProtocol;
       }
       final t = stats.last.when.difference(stats.first.when).inMicroseconds;
@@ -84,6 +90,8 @@ class Stats extends Model {
     // Must clone data in the alert
     final vals = List<int>.from(ssa.counters);
     sessionStats.add(WithTime(vals));
+
+    d2 = vals[idxD];
 
     while (sessionStats.length > count) {
       sessionStats.removeAt(0);
@@ -114,6 +122,7 @@ class Stats extends Model {
 }
 
 class Dimension {
+  Dimension(this.dim, {this.postfix = ''});
   factory Dimension.speed(int dim) => Dimension(dim, postfix: '/s');
   factory Dimension.size(int dim) => Dimension(dim);
   factory Dimension.duration(int dim) => DurationDimension(dim);
@@ -123,7 +132,6 @@ class Dimension {
 
   final int dim;
   final String postfix;
-  Dimension(this.dim, {this.postfix = ''});
 
   static const g = 1024 * 1024 * 1024;
   static const m = 1024 * 1024;
@@ -147,13 +155,13 @@ class Dimension {
 
   String get readable {
     if (dim > g) {
-      double d = dim / g;
+      final d = dim / g;
       return d.toStringAsFixed(1);
     } else if (dim > m) {
-      double d = dim / m;
+      final d = dim / m;
       return d.toStringAsFixed(1);
     } else if (dim > k) {
-      double d = dim / k;
+      final d = dim / k;
       return d.toStringAsFixed(0);
     }
     return dim.toString();

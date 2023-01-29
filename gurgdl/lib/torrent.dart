@@ -3,25 +3,25 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:libtorrent/libtorrent.dart';
 import 'package:path/path.dart';
-import 'package:scoped_model/scoped_model.dart';
 
 import 'stats.dart';
 
 export 'package:libtorrent/libtorrent.dart';
 
-/// top most manager
-class SessionController extends Model {
+/// Top most manager
+class SessionController extends ChangeNotifier {
+  SessionController._(this.folder, this.sess);
+
   static SessionController? _instance;
+
   final String folder;
   final Session sess;
   late Timer ticker;
   final torrents = <int, Torrent>{};
-
   final stats = Stats();
-
-  SessionController._(this.folder, this.sess);
 
   void applySetting() {
     final p = sess.settingsPack;
@@ -46,42 +46,56 @@ class SessionController extends Model {
     sess.apply(p);
   }
 
+  @override
   void dispose() {
     ticker.cancel();
     save();
+
+    super.dispose();
   }
+
+  int c = 0;
 
   void handle(_) {
     // empty alerts queue
     final as = sess.alerts;
-    // debugPrint('alerts ${as.length}');
+    debugPrint('alerts ${as.length}');
 
-    for (int i = 0; i < as.length; i++) {
+    for (var i = 0; i < as.length; i++) {
       final a = as.itemOf(i);
 
       if (a.type == SaveResumeDataAlert.type) {
-        final srd = a.cast() as SaveResumeDataAlert;
+        final srd = a.cast()! as SaveResumeDataAlert;
         final fp = '${a.torrentHandle!.id}.resume';
         debugPrint('torrent resume data write to $fp');
         srd.params.write(join(folder, fp));
       } else if (a.type == SessionStatsAlert.type) {
-        stats.tick(a.toSessionStats() as SessionStatsAlert);
+        stats.tick(a.toSessionStats()!);
       } else if (a.type == StatsAlert.type) {
-        stats.apply(StatsItem.from(a.toStats() as StatsAlert));
+        final sa = a.toStats();
+        stats.apply(StatsItem.from(sa!));
+      } else if (a.type == AddTorrentAlert.type) {
+        final h = a.torrentHandle;
+        if (h != null) {
+          final ata = a.toAddTorrent();
+          if (ata != null) {
+            print('TODO: AddTorrent.error ${ata.error}');
+
+            torrents[h.id] = Torrent(h, ata.params, sizes: <int>[]);
+
+            notifyListeners();
+          } else {}
+        }
       }
 
-      // TODO: handle torrent added alert
-      final h = a.torrentHandle;
-      if (h != null) {
-        torrents[h.id] = Torrent(h, sizes: <int>[]);
-
-        notifyListeners();
+      if (c++ < 20) {
+        print(a);
       }
-      // debugPrint(a.toString());
     }
 
     // Notify session to alerts next session-stats
-    sess.postStats();
+    // sess.postStats();
+    // print('post ${DateTime.now()}');
   }
 
   void save() {
@@ -96,7 +110,9 @@ class SessionController extends Model {
         .onError((err, _) => debugPrint('save tasks.json failed $err'));
 
     torrents.forEach((id, t) {
-      t.handle.saveResumeData();
+      if (t.handle.needSaveResumeData) {
+        t.handle.saveResumeData();
+      }
     });
   }
 
@@ -112,7 +128,7 @@ class SessionController extends Model {
   }
 
   /// tasks.json
-  /// load resume from {torrent name}.resume
+  /// load resume from id.resume
   ///
   static Future<SessionController> createSession(String folder) async {
     if (_instance != null) {
@@ -126,11 +142,11 @@ class SessionController extends Model {
 
     _instance = SessionController._(folder, sess);
 
-    _instance!._init();
+    _instance?._init();
 
-    File(join(folder, 'tasks.json')).readAsString().then((content) {
-      final tasks = json.decode(content) as List;
-      for (int n in tasks) {
+    unawaited(File(join(folder, 'tasks.json')).readAsString().then((content) {
+      final tasks = (json.decode(content) as List).cast<int>();
+      for (final n in tasks) {
         final p = AddTorrentParams.readFrom(join(folder, '$n.resume'));
         debugPrint('load resume file: $n.resume');
         if (p != null) {
@@ -142,18 +158,19 @@ class SessionController extends Model {
     }).catchError((e) {
       debugPrint('create session failed $e');
       completer.complete(_instance);
-    });
+    }));
 
     return completer.future;
   }
 }
 
-class Torrent extends Model {
+class Torrent extends ChangeNotifier {
+  Torrent(this.handle, this.params, {this.sizes = const <int>[]});
+
   final Handle handle;
+  final AddTorrentParams params;
   final List<int> sizes;
   bool metadata = false;
-
-  Torrent(this.handle, {this.sizes = const <int>[]});
 
   void queryFileSize() {
     sizes.clear();
