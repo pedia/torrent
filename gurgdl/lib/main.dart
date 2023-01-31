@@ -70,7 +70,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Gurgle',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(useMaterial3: true, primaryColor: Colors.green),
       home: sc == null
           ? const Center(child: Text('loading'))
           : MultiProvider(

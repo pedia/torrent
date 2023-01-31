@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:libtorrent/gen/libtorrent.g.dart' show Status;
 
-import 'stats.dart';
+import 'base/dimension.dart';
 
 class Item {
   Item(this.name, this.fetch, [this.comment]);

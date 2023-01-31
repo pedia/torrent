@@ -16,19 +16,20 @@ class SessionPanel extends StatelessWidget {
           margin: const EdgeInsets.all(18),
           child: Column(
             children: [
-              // FlipNumber(
-              //   value: model.currentD,
-              //   duration: const Duration(seconds: 1),
-              //   textStyle: textTheme.headlineLarge,
-              // ),
+              FlipNumber(
+                number: Provider.of<Stats>(context).currentD,
+                duration: const Duration(seconds: 3),
+                textStyle: textTheme.headlineLarge,
+                curve: Curves.fastOutSlowIn,
+              ),
               // TestFlip(
               //   model.currentD,
               //   textStyle: textTheme.headlineLarge,
               // ),
-              TestFlip(
-                state.d1,
-                textStyle: textTheme.headlineLarge,
-              ),
+              // TestFlip(
+              //   state.d1,
+              //   textStyle: textTheme.headlineLarge,
+              // ),
               // TestFlip(
               //   model.d2,
               //   textStyle: textTheme.headlineLarge,

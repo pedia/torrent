@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:libtorrent/native_array.dart';
-import 'stats.dart';
+import 'base/dimension.dart';
 import 'status_panel.dart';
 import 'torrent.dart';
 

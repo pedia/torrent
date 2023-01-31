@@ -3,11 +3,26 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 
 class FlipNumber extends StatelessWidget {
-  /// The value of this counter.
+  const FlipNumber({
+    super.key,
+    required this.number,
+    this.duration = const Duration(milliseconds: 300),
+    this.curve = Curves.ease,
+    this.textStyle,
+    this.wholeDigits = 1,
+    this.fractionDigits = 0,
+    this.thousandSeparator,
+    this.decimalSeparator = '.',
+    this.mainAxisAlignment = MainAxisAlignment.center,
+    this.padding = EdgeInsets.zero,
+  })  : assert(wholeDigits >= 0, 'wholeDigits must be non-negative'),
+        assert(fractionDigits >= 0, 'fractionDigits must be non-negative');
+
+  /// The number value of this counter.
   ///
   /// When a new value is specified, the counter will automatically animate
   /// from its old value to the new value.
-  final num value;
+  final num number;
 
   /// The duration over which to animate the value of this counter.
   final Duration duration;
@@ -25,12 +40,12 @@ class FlipNumber extends StatelessWidget {
   ///
   /// For example, `wholeDigits: 4` means it will pad `48` into `0048`.
   /// Default value is `1`, setting it to `0` would turn `0.7` into `.7`.
-  /// If the actual [value] has more digits, this property will be ignored.
+  /// If the actual [number] has more digits, this property will be ignored.
   final int wholeDigits;
 
   /// How many digits to display, after the decimal point.
   ///
-  /// The actual [value] will be rounded to the nearest digit.
+  /// The actual [number] will be rounded to the nearest digit.
   final int fractionDigits;
 
   /// Insert a symbol between every 3 digits, for example: 1,000,000.
@@ -54,26 +69,11 @@ class FlipNumber extends StatelessWidget {
   /// The padding around each of the digits, defaults to 0.
   final EdgeInsets padding;
 
-  const FlipNumber({
-    super.key,
-    required this.value,
-    this.duration = const Duration(milliseconds: 300),
-    this.curve = Curves.linear,
-    this.textStyle,
-    this.wholeDigits = 1,
-    this.fractionDigits = 0,
-    this.thousandSeparator,
-    this.decimalSeparator = '.',
-    this.mainAxisAlignment = MainAxisAlignment.center,
-    this.padding = EdgeInsets.zero,
-  })  : assert(wholeDigits >= 0, 'wholeDigits must be non-negative'),
-        assert(fractionDigits >= 0, 'fractionDigits must be non-negative');
-
   @override
   Widget build(BuildContext context) {
     final style = DefaultTextStyle.of(context).style.merge(textStyle);
     // Layout number '8' (probably the widest digit) to see its size
-    final prototypeDigit = TextPainter(
+    final layout = TextPainter(
       text: TextSpan(text: '8', style: style),
       textDirection: TextDirection.ltr,
       textScaleFactor: MediaQuery.of(context).textScaleFactor,
@@ -81,16 +81,16 @@ class FlipNumber extends StatelessWidget {
 
     // Find the text color (or red as warning). This is so we can avoid using
     // `Opacity` and `AnimatedOpacity` widget, for better performance.
-    final Color color = style.color ?? const Color(0xffff0000);
+    final color = style.color ?? const Color(0xffff0000);
 
     // Convert the decimal value to int. For example, if we want 2 decimal
     // places, we will convert 5.21 into 521.
-    final int value = (this.value * math.pow(10, fractionDigits)).round();
+    final value = (number * math.pow(10, fractionDigits)).round();
 
     // Split the integer value into separate digits.
     // For example, to draw 521, we split it into [5, 52, 521].
-    List<int> digits = value == 0 ? [0] : [];
-    int v = value.abs();
+    var digits = value == 0 ? [0] : <int>[];
+    var v = value.abs();
     while (v > 0) {
       digits.add(v);
       v = v ~/ 10;
@@ -100,17 +100,15 @@ class FlipNumber extends StatelessWidget {
     }
     digits = digits.reversed.toList(growable: false);
 
-    // print(digits);
-
     // Generate the widgets needed for digits before the decimal point.
     final integerWidgets = <Widget>[];
-    for (int i = 0; i < digits.length - fractionDigits; i++) {
-      final digit = _SingleDigitFlipCounter(
+    for (var i = 0; i < digits.length - fractionDigits; i++) {
+      final digit = SingleDigitFlipCounter(
         key: ValueKey(digits.length - i),
         value: digits[i].toDouble(),
         duration: duration,
         curve: curve,
-        size: prototypeDigit.size,
+        size: layout.size,
         color: color,
         padding: padding,
       );
@@ -118,8 +116,8 @@ class FlipNumber extends StatelessWidget {
     }
     // Insert 'thousand separator' widgets if needed.
     if (thousandSeparator != null) {
-      int counter = 0;
-      for (int i = integerWidgets.length; i > 0; i--) {
+      var counter = 0;
+      for (var i = integerWidgets.length; i > 0; i--) {
         if (counter > 0 && counter % 3 == 0) {
           integerWidgets.insert(i, Text(thousandSeparator!));
         }
@@ -150,12 +148,12 @@ class FlipNumber extends StatelessWidget {
           if (fractionDigits != 0) Text(decimalSeparator),
           // Draw digits after the decimal point
           for (int i = digits.length - fractionDigits; i < digits.length; i++)
-            _SingleDigitFlipCounter(
+            SingleDigitFlipCounter(
               key: ValueKey('decimal$i'),
               value: digits[i].toDouble(),
               duration: duration,
               curve: curve,
-              size: prototypeDigit.size,
+              size: layout.size,
               color: color,
               padding: padding,
             ),
@@ -165,15 +163,8 @@ class FlipNumber extends StatelessWidget {
   }
 }
 
-class _SingleDigitFlipCounter extends StatelessWidget {
-  final double value;
-  final Duration duration;
-  final Curve curve;
-  final Size size;
-  final Color color;
-  final EdgeInsets padding;
-
-  const _SingleDigitFlipCounter({
+class SingleDigitFlipCounter extends StatelessWidget {
+  const SingleDigitFlipCounter({
     Key? key,
     required this.value,
     required this.duration,
@@ -182,6 +173,13 @@ class _SingleDigitFlipCounter extends StatelessWidget {
     required this.color,
     required this.padding,
   }) : super(key: key);
+
+  final double value;
+  final Duration duration;
+  final Curve curve;
+  final Size size;
+  final Color color;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
@@ -200,16 +198,8 @@ class _SingleDigitFlipCounter extends StatelessWidget {
           height: h,
           child: Stack(
             children: <Widget>[
-              _buildSingleDigit(
-                digit: whole % 10,
-                offset: h * decimal,
-                opacity: 1 - decimal,
-              ),
-              _buildSingleDigit(
-                digit: (whole + 1) % 10,
-                offset: h * decimal - h,
-                opacity: decimal,
-              ),
+              _buildSingleDigit(whole % 10, h * decimal, 1 - decimal),
+              _buildSingleDigit((whole + 1) % 10, h * decimal - h, decimal),
             ],
           ),
         );
@@ -217,55 +207,28 @@ class _SingleDigitFlipCounter extends StatelessWidget {
     );
   }
 
-  Widget _buildSingleDigit({
-    required int digit,
-    required double offset,
-    required double opacity,
-  }) {
-    // Try to avoid using the `Opacity` widget when possible, for performance.
-    Widget child;
-    if (color.opacity == 1) {
-      // If the text style does not involve transparency, we can modify
-      // the text color directly.
-      child = Text(
-        '$digit',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: color.withOpacity(opacity.clamp(0, 1))),
-      );
-    } else {
-      // Otherwise, we have to use the `Opacity` widget (less performant).
-      child = Opacity(
-        opacity: opacity.clamp(0, 1),
-        child: Text(
-          '$digit',
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
+  Widget _buildSingleDigit(int digit, double offset, double opacity) {
     return Positioned(
       left: 0,
       right: 0,
       bottom: offset + padding.bottom,
-      child: child,
-    );
-  }
-}
-
-class TestFlip extends StatelessWidget {
-  final num value;
-  final TextStyle? textStyle;
-  const TestFlip(this.value, {this.textStyle, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // print('flip ${DateTime.now()} $value');
-    return TweenAnimationBuilder(
-      tween: Tween(end: value),
-      duration: const Duration(milliseconds: 900),
-      curve: Curves.linear,
-      builder: (context, value, child) {
-        return Text('${value.toInt()}', style: textStyle);
-      },
+      child: color.opacity == 1
+          ?
+          // Try to avoid using the `Opacity` widget when possible, for performance.
+          //
+          // If the text style does not involve transparency, we can modify
+          // the text color directly.
+          Text(
+              '$digit',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: color.withOpacity(opacity.clamp(0, 1))),
+            )
+          :
+          // Otherwise, we have to use the `Opacity` widget (less performant).
+          Opacity(
+              opacity: opacity.clamp(0, 1),
+              child: Text('$digit', textAlign: TextAlign.center),
+            ),
     );
   }
 }

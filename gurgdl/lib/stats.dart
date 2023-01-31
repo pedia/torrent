@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:libtorrent/libtorrent.dart';
 
+import 'base/dimension.dart';
+
 class WithTime<T> {
   WithTime(this.t, {DateTime? when}) : when = when ?? DateTime.now();
   final T t;
@@ -119,86 +121,4 @@ class Stats extends ChangeNotifier {
   Dimension get rateOfU => of(idxU);
 
   int get currentD => sessionStats.isEmpty ? 0 : sessionStats.last.t[idxD];
-}
-
-class Dimension {
-  Dimension(this.dim, {this.postfix = ''});
-  factory Dimension.speed(int dim) => Dimension(dim, postfix: '/s');
-  factory Dimension.size(int dim) => Dimension(dim);
-  factory Dimension.duration(int dim) => DurationDimension(dim);
-
-  static Dimension zeroSpeed = Dimension.speed(0);
-  static Dimension zeroSize = Dimension.size(0);
-
-  final int dim;
-  final String postfix;
-
-  static const g = 1024 * 1024 * 1024;
-  static const m = 1024 * 1024;
-  static const k = 1024;
-
-  @override
-  String toString() {
-    return '$readable $unit';
-  }
-
-  String get unit {
-    if (dim > g) {
-      return 'GB$postfix';
-    } else if (dim > m) {
-      return 'MB$postfix';
-    } else if (dim > k) {
-      return 'KB$postfix';
-    }
-    return 'B$postfix';
-  }
-
-  String get readable {
-    if (dim > g) {
-      final d = dim / g;
-      return d.toStringAsFixed(1);
-    } else if (dim > m) {
-      final d = dim / m;
-      return d.toStringAsFixed(1);
-    } else if (dim > k) {
-      final d = dim / k;
-      return d.toStringAsFixed(0);
-    }
-    return dim.toString();
-  }
-}
-
-class DurationDimension extends Dimension {
-  DurationDimension(super.dim);
-
-  static const day = 86400;
-  static const hour = 3600;
-  static const minute = 60;
-
-  @override
-  String get unit {
-    if (dim > day) {
-      return 'day';
-    } else if (dim > hour) {
-      return 'hour';
-    } else if (dim > minute) {
-      return 'minute';
-    }
-    return 'second';
-  }
-
-  @override
-  String get readable {
-    if (dim > day) {
-      double d = dim / day;
-      return d.toStringAsFixed(1);
-    } else if (dim > hour) {
-      double d = dim / hour;
-      return d.toStringAsFixed(1);
-    } else if (dim > minute) {
-      double d = dim / minute;
-      return d.toStringAsFixed(0);
-    }
-    return dim.toString();
-  }
 }
