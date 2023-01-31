@@ -1,4 +1,4 @@
-import 'package:shawndown/stats.dart';
+import 'package:gurgdl/stats.dart';
 import 'package:test/test.dart';
 
 void main() {
