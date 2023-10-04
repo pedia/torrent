@@ -7,8 +7,8 @@ import 'package:system_tray/system_tray.dart';
 import 'package:window_size/window_size.dart';
 
 import 'homepage.dart';
+import 'session.dart';
 import 'stats.dart';
-import 'torrent.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

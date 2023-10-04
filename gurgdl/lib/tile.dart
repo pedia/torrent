@@ -1,49 +1,45 @@
 import 'package:flutter/material.dart';
 
-import 'package:libtorrent/native_array.dart';
-import 'base/dimension.dart';
+import 'session.dart';
 import 'status_panel.dart';
-import 'torrent.dart';
+import 'task.dart';
+import 'task_detail.dart';
 
 // name               多行, selectable
 // --->------------   progress
 // 2/3  9 KB          finished file count / file count, speed
 //
-class Tile extends StatefulWidget {
-  const Tile(this.t, {super.key});
+class TaskTile extends StatefulWidget {
+  const TaskTile(this.t, {super.key});
 
-  final Torrent t;
+  final Task t;
 
   @override
-  State<Tile> createState() => _TileState();
+  State<TaskTile> createState() => _TaskTileState();
 }
 
-class _TileState extends State<Tile> {
-  String pretty(Handle h) {
-    final n1 = fromFixedArray(h.status.name);
-    if (n1.isNotEmpty) {
-      return n1;
-    }
-    return h.id.toString();
-  }
-
+class _TaskTileState extends State<TaskTile> {
   bool action = false;
 
   @override
   Widget build(BuildContext context) {
-    final status = widget.t.handle.status;
-    final info = widget.t.handle.info;
+    final status = widget.t.handle?.status;
+    final info = widget.t.handle?.info;
     return Column(
       children: [
         ListTile(
-          tileColor: colorForState(status.state),
-          title: SelectableText(pretty(widget.t.handle)),
-          onTap: () => setState(() => action = !action),
+          // titlecolor: colorForState(status.state),
+          title: SelectableText(widget.t.name ?? widget.t.infoHash),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => TaskDetail(widget.t),
+            ),
+          ),
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
           subtitle: action
               ? null
               : LinearProgressIndicator(
-                  value: status.progress,
+                  value: status?.progress,
                   color: Colors.green,
                   minHeight: 4,
                 ),
@@ -59,13 +55,13 @@ class _TileState extends State<Tile> {
           SizedBox(
             // preferredSize: const Size.fromHeight(200),
             height: 200,
-            child: StatusPanel(status),
+            child: status == null ? Container() : StatusPanel(status),
           ),
         if (action)
           Row(
             children: [
               OutlinedButton(
-                onPressed: widget.t.handle.saveResumeData,
+                onPressed: widget.t.handle?.saveResumeData,
                 child: const Text('save resume'),
               ),
             ],
@@ -86,26 +82,43 @@ class _TileState extends State<Tile> {
       }[state];
 }
 
-class FilesView extends StatelessWidget {
-  const FilesView(this.t, {super.key});
-  final Torrent t;
+///
+class TaskSummary extends StatelessWidget {
+  const TaskSummary({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final files = t.handle.info.files;
+    return Row(
+      children: [
+        const Flexible(flex: 5, child: Text('2/3')),
+        Flexible(flex: 5, child: Container()),
+        const Flexible(flex: 5, child: Text('9 KB/s')),
+      ],
+    );
+  }
+}
+
+/// List all files in this task.
+class FilesView extends StatelessWidget {
+  const FilesView(this.t, {super.key});
+  final Task t;
+
+  @override
+  Widget build(BuildContext context) {
+    final files = t.handle?.info.files;
     return SizedBox(
       height: 200,
       child: ListView(
         children: List.generate(
-          files.numFiles,
+          files?.numFiles ?? 0,
           (i) => ListTile(
-            title: Text(files.fileName(i)),
-            subtitle: Text(Dimension.size(files.fileSize(i)).toString()),
+            // title: Text(files.fileName(i)),
+            // subtitle: Text(Dimension.size(files.fileSize(i)).toString()),
             onTap: () {
-              t.queryFileSize();
+              // t.queryFileSize();
 
               // TODO: order wrong?
-              debugPrint('sizes: ${t.sizes} ${t.handle.fileProgress}');
+              // debugPrint('sizes: ${t.sizes} ${t.handle.fileProgress}');
             },
           ),
         ),

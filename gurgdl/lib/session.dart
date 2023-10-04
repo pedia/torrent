@@ -8,20 +8,30 @@ import 'package:libtorrent/libtorrent.dart';
 import 'package:path/path.dart';
 
 import 'stats.dart';
+import 'task.dart';
 
 export 'package:libtorrent/libtorrent.dart';
 
 /// Top most manager
 class SessionController extends ChangeNotifier {
-  SessionController._(this.folder, this.sess);
-
-  static SessionController? _instance;
+  SessionController._(this.folder, this.sess, this.tasks);
 
   final String folder;
   final Session sess;
-  late Timer ticker;
+  Timer? ticker;
   final torrents = <int, Torrent>{};
   final stats = Stats();
+
+  /// infohash => Task
+  final Map<String, Task> tasks;
+
+  void add(Task task) {
+    sess.add(task.params!);
+
+    if (ticker == null) {
+      _startTick();
+    }
+  }
 
   void applySetting() {
     final p = sess.settingsPack;
@@ -48,7 +58,7 @@ class SessionController extends ChangeNotifier {
 
   @override
   void dispose() {
-    ticker.cancel();
+    ticker?.cancel();
     save();
 
     super.dispose();
@@ -56,7 +66,7 @@ class SessionController extends ChangeNotifier {
 
   int c = 0;
 
-  void handle(_) {
+  void tick(_) {
     // empty alerts queue
     final as = sess.alerts;
     debugPrint('alerts ${as.length}');
@@ -75,17 +85,7 @@ class SessionController extends ChangeNotifier {
         final sa = a.toStats();
         stats.apply(StatsItem.from(sa!));
       } else if (a.type == AddTorrentAlert.type) {
-        final h = a.torrentHandle;
-        if (h != null) {
-          final ata = a.toAddTorrent();
-          if (ata != null) {
-            print('TODO: AddTorrent.error ${ata.error}');
-
-            torrents[h.id] = Torrent(h, ata.params, sizes: <int>[]);
-
-            notifyListeners();
-          } else {}
-        }
+        taskByHandle(a.torrentHandle)?.onAdd(a.toAddTorrent());
       }
 
       if (c++ < 20) {
@@ -99,16 +99,19 @@ class SessionController extends ChangeNotifier {
   }
 
   void save() {
+    final fp = join(folder, 'tasks.json');
+    File(fp)
+        .writeAsString(
+          json.encode(tasks.values.map((e) => e.toJson())),
+        )
+        .then((value) => debugPrint('tasks $fp saved'))
+        .onError((err, _) => debugPrint('save $fp failed $err'));
+
+    //
     sess.state.write(join(folder, '.sess'));
     debugPrint('.sess saved');
 
-    File(join(folder, 'tasks.json'))
-        .writeAsString(
-          json.encode(torrents.entries.map((e) => e.value.handle.id).toList()),
-        )
-        .then((value) => debugPrint('tasks.json saved'))
-        .onError((err, _) => debugPrint('save tasks.json failed $err'));
-
+    //
     torrents.forEach((id, t) {
       if (t.handle.needSaveResumeData) {
         t.handle.saveResumeData();
@@ -121,47 +124,52 @@ class SessionController extends ChangeNotifier {
     sess.isPaused() ? sess.resume() : sess.pause();
   }
 
-  void _init() {
-    applySetting();
-
-    ticker = Timer.periodic(const Duration(seconds: 1), handle);
+  void _startTick() {
+    assert(ticker == null);
+    ticker = Timer.periodic(const Duration(seconds: 1), tick);
   }
 
   /// tasks.json
   /// load resume from id.resume
   ///
   static Future<SessionController> createSession(String folder) async {
-    if (_instance != null) {
-      return _instance!;
-    }
-
     final completer = Completer<SessionController>();
 
     final p = SessionParams.readFrom(join(folder, '.sess'));
     final sess = Session.create(p);
 
-    _instance = SessionController._(folder, sess);
+    unawaited(loadTasks(join(folder, 'tasks.json')).then((tasks) {
+      final tm = Map.fromEntries(tasks.map((e) => MapEntry(e.infoHash, e)));
+      final sc = SessionController._(folder, sess, tm)..applySetting();
 
-    _instance?._init();
-
-    unawaited(File(join(folder, 'tasks.json')).readAsString().then((content) {
-      final tasks = (json.decode(content) as List).cast<int>();
-      for (final n in tasks) {
-        final p = AddTorrentParams.readFrom(join(folder, '$n.resume'));
-        debugPrint('load resume file: $n.resume');
-        if (p != null) {
-          sess.add(p);
-        }
-      }
-
-      completer.complete(_instance);
-    }).catchError((e) {
+      completer.complete(sc);
+    }).catchError((Object e) {
       debugPrint('create session failed $e');
-      completer.complete(_instance);
+      completer.complete(SessionController._(folder, sess, {}));
     }));
 
     return completer.future;
   }
+
+  static Future<List<Task>> loadTasks(String fp) async {
+    final content = await File(fp).readAsString();
+    final ts = json.decode(content) as List;
+    return ts.map((e) => Task.fromMap(e as Map<String, String>)).toList();
+  }
+
+  void start() {
+    // unawaited(File().readAsString().then((content) {
+    //   final tasks = (json.decode(content) as List).cast<int>();
+    //   for (final n in tasks) {
+    //     final p = AddTorrentParams.readFrom(join(folder, '$n.resume'));
+    //     debugPrint('load resume file: $n.resume');
+    //     if (p != null) {
+    //       sess.add(p);
+    //     }
+    //   }
+  }
+
+  Task? taskByHandle(Handle? h) => tasks[h?.infoHash];
 }
 
 class Torrent extends ChangeNotifier {

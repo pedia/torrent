@@ -3,8 +3,8 @@ import 'package:libtorrent/libtorrent.dart';
 
 import 'base/dimension.dart';
 
-class WithTime<T> {
-  WithTime(this.t, {DateTime? when}) : when = when ?? DateTime.now();
+class _WithTime<T> {
+  _WithTime(this.t, {DateTime? when}) : when = when ?? DateTime.now();
   final T t;
   final DateTime when;
 }
@@ -43,18 +43,20 @@ class StatsItem {
   }
 }
 
+/// 存储 SessionStatsAlert 内数值, 提供速率和原始值
 class Stats extends ChangeNotifier {
-  final stats = <WithTime<StatsItem>>[];
+  /// 早期的统计
+  final stats = <_WithTime<StatsItem>>[];
+
+  /// 只存储 ...
   final int count = 20;
-  final sessionStats = <WithTime<List<int>>>[];
 
   int d1 = 0; // stats.protocol download bytes
   int d2 = 0; // session stats.protocol download bytes
 
   void apply(StatsItem item, {DateTime? when}) {
-    stats.add(WithTime(item, when: when));
+    stats.add(_WithTime(item, when: when));
 
-    print(item);
     d1 += item.downloadProtocol;
 
     while (stats.length > count) {
@@ -78,8 +80,8 @@ class Stats extends ChangeNotifier {
 
   Dimension get speedOfDownload {
     if (stats.isNotEmpty) {
-      int s = 0;
-      for (var e in stats.sublist(1)) {
+      var s = 0;
+      for (final e in stats.sublist(1)) {
         s += e.t.downloadProtocol;
       }
       final t = stats.last.when.difference(stats.first.when).inMicroseconds;
@@ -88,37 +90,40 @@ class Stats extends ChangeNotifier {
     return Dimension.zeroSpeed;
   }
 
+  /// 长期统计，内容为 List<int>，索引使用 `SessionStatsAlert.findMetricIdx`
+  final history = <_WithTime<List<int>>>[];
+
+  /// 3秒推送一次
   void tick(SessionStatsAlert ssa) {
     // Must clone data in the alert
-    final vals = List<int>.from(ssa.counters);
-    sessionStats.add(WithTime(vals));
+    final vals = List<int>.from(ssa.counters, growable: false);
+    history.add(_WithTime(vals));
 
-    d2 = vals[idxD];
+    d2 = vals[_idxD];
 
-    while (sessionStats.length > count) {
-      sessionStats.removeAt(0);
+    while (history.length > count) {
+      history.removeAt(0);
     }
     notifyListeners();
   }
 
-  static final int idxD = SessionStatsAlert.findMetricIdx('net.recv_bytes');
-  static final int idxU = SessionStatsAlert.findMetricIdx('net.sent_bytes');
+  /// 下载速度,上传速度
+  Dimension get rateOfD => _speedOf(_idxD);
+  Dimension get rateOfU => _speedOf(_idxU);
 
-  Dimension of(int idx) {
-    if (sessionStats.isEmpty) {
+  int get currentD => history.isEmpty ? 0 : history.last.t[_idxD];
+
+  static final int _idxD = SessionStatsAlert.findMetricIdx('net.recv_bytes');
+  static final int _idxU = SessionStatsAlert.findMetricIdx('net.sent_bytes');
+
+  Dimension _speedOf(int idx) {
+    if (history.isEmpty) {
       return Dimension.zeroSpeed;
     }
 
-    final s = sessionStats.last.t[idx] - sessionStats.first.t[idx];
-    final t = sessionStats.last.when
-        .difference(sessionStats.first.when)
-        .inMicroseconds;
+    final s = history.last.t[idx] - history.first.t[idx];
+    final t = history.last.when.difference(history.first.when).inMilliseconds;
 
-    return t == 0 ? Dimension.zeroSpeed : Dimension.speed(s * 1e6 ~/ t);
+    return t != 0 ? Dimension.speed(s * 1e3 ~/ t) : Dimension.zeroSpeed;
   }
-
-  Dimension get rateOfD => of(idxD);
-  Dimension get rateOfU => of(idxU);
-
-  int get currentD => sessionStats.isEmpty ? 0 : sessionStats.last.t[idxD];
 }

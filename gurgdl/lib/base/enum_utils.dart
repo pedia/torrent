@@ -11,9 +11,7 @@ import 'package:flutter/foundation.dart';
 ///   red, green, blue
 /// }
 /// ```
-///   EnumUtils<Color> colorUtils = EnumUtils(Color.values);
-///   colorUtils.getEnum('red'); // returns Color.red
-///   colorUtils.getName(Color.red); // returns 'red'
+///   EnumUtils<Color>(Color.values).enumEntry('red'); // returns Color.red
 /// ```
 class EnumUtils<T> {
   EnumUtils(List<T> enumValues) {
@@ -33,6 +31,11 @@ class EnumUtils<T> {
   String? name(T enumEntry) => _reverseLookupTable[enumEntry];
 }
 
+///
+/// Example usage:
+/// ```dart
+///   enum Size with EnumIndexOrdering {ex, sm}
+/// ```
 mixin EnumIndexOrdering<T extends Enum> on Enum implements Comparable<T> {
   @override
   int compareTo(T other) => index.compareTo(other.index);

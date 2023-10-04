@@ -2,9 +2,10 @@ import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'session.dart';
+import 'task.dart';
 import 'session_panel.dart';
 import 'tile.dart';
-import 'torrent.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,7 +20,7 @@ class _HomePageState extends State<HomePage> {
     final sc = context.read<SessionController>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gurgle Torrent(gTorrent)'),
+        title: const Text('GurgleDL'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -32,15 +33,12 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // sess.add(AddTorrentParams.parseMagnet(
-              //   'magnet:?xt=urn:btih:3c80d623bf867337d843d3727cae7053b23e9b4e',
-              //   '.',
-              // ));
+              sc.add(Task.fromUri(
+                  'magnet:?xt=urn:btih:3c80d623bf867337d843d3727cae7053b23e9b4e')!);
               // sc.sess.add(AddTorrentParams.parseMagnet(
               //   'magnet:?xt=urn:btih:0497dca6eaf2340ce4f1a982047dcafa738a6170',
               //   '.',
               // )!);
-              print('torrents length: ${sc.torrents.length}');
             },
           )
         ],
@@ -52,9 +50,9 @@ class _HomePageState extends State<HomePage> {
             const SessionPanel(),
             Expanded(
               child: ListView.builder(
-                itemCount: sc.torrents.length,
-                itemBuilder: (context, index) => Tile(
-                  sc.torrents.entries.toList()[index].value,
+                itemCount: sc.tasks.length,
+                itemBuilder: (context, index) => TaskTile(
+                  sc.tasks.entries.elementAt(index).value,
                 ),
               ),
             ),
