@@ -10,23 +10,26 @@ enum TaskType {
   ed2k,
 }
 
+/// store path
+const storePath = 'store';
+
 /// Generic Download task
-/// 
+///
 /// Store session in
 /// - .sess file
 /// - tasks.json
-/// 
-/// A task has magnet 
+///
+/// A task has magnet
 ///   / torrent file / storage path
 ///   name
-/// 
+///
 class Task {
   Task._({
     required this.type,
     required this.source,
     required this.infoHash,
     this.name,
-    this.params,
+    this.atp,
   });
 
   factory Task.fromMap(Map<String, dynamic> map) => Task._(
@@ -40,7 +43,7 @@ class Task {
   final String infoHash;
   final String source;
   final TaskType type;
-  AddTorrentParams? params;
+  final AddTorrentParams? atp;
   String? name;
   Handle? handle;
 
@@ -56,10 +59,14 @@ class Task {
   }
 
   static Task? fromUri(String uri) {
-    final p = AddTorrentParams.parseMagnet(uri, '.');
-    if (p != null) {
+    final atp = AddTorrentParams.parseMagnet(uri, storePath);
+    if (atp != null) {
       return Task._(
-          source: uri, type: TaskType.magnet, infoHash: p.infoHash, params: p);
+        source: uri,
+        type: TaskType.magnet,
+        infoHash: atp.infoHash,
+        atp: atp,
+      );
     }
     return null;
   }
@@ -67,4 +74,3 @@ class Task {
   /// when this task added into session
   void onAdd(AddTorrentAlert? alert) {}
 }
-

@@ -10,7 +10,7 @@ import 'package:path/path.dart';
 import 'stats.dart';
 import 'task.dart';
 
-export 'package:libtorrent/libtorrent.dart';
+// export 'package:libtorrent/libtorrent.dart';
 
 /// Top most manager
 class SessionController extends ChangeNotifier {
@@ -19,18 +19,24 @@ class SessionController extends ChangeNotifier {
   final String folder;
   final Session sess;
   Timer? ticker;
-  final torrents = <int, Torrent>{};
+  final torrents = <Torrent>[];
   final stats = Stats();
 
   /// infohash => Task
   final Map<String, Task> tasks;
 
+  /// Add task into session, download beginning
   void add(Task task) {
-    sess.add(task.params!);
+    if (task.atp != null) {
+      // load resume file, if exists
+      final fn = '${task.atp?.infoHash}.resume_file';
+      var atp = AddTorrentParams.readFrom(fn);
 
-    if (ticker == null) {
-      _startTick();
+      atp ??= task.atp;
+      sess.add(atp!);
     }
+
+    ensureTicker();
   }
 
   void applySetting() {
@@ -65,6 +71,7 @@ class SessionController extends ChangeNotifier {
   }
 
   int c = 0;
+  bool quit = false;
 
   void tick(_) {
     // empty alerts queue
@@ -73,24 +80,57 @@ class SessionController extends ChangeNotifier {
 
     for (var i = 0; i < as.length; i++) {
       final a = as.itemOf(i);
+      print(a);
 
-      if (a.type == SaveResumeDataAlert.type) {
-        final srd = a.cast()! as SaveResumeDataAlert;
-        final fp = '${a.torrentHandle!.id}.resume';
-        debugPrint('torrent resume data write to $fp');
-        srd.params.write(join(folder, fp));
-      } else if (a.type == SessionStatsAlert.type) {
-        stats.tick(a.toSessionStats()!);
-      } else if (a.type == StatsAlert.type) {
-        final sa = a.toStats();
-        stats.apply(StatsItem.from(sa!));
-      } else if (a.type == AddTorrentAlert.type) {
-        taskByHandle(a.torrentHandle)?.onAdd(a.toAddTorrent());
-      }
-
-      if (c++ < 20) {
-        print(a);
-      }
+      // necessary action
+      if (a is LogAlert) {
+          // print(a.logMessage);
+        } else if (a is TrackerErrorAlert) {
+          // print('  ${a.error} ${a.failureReason}');
+        } else if (a is TorrentLogAlert) {
+          // print(a.logMessage);
+        } else if (a is PeerLogAlert) {
+          // print(a.logMessage);
+        } else if (a is TorrentLogAlert) {
+          // print(a.logMessage);
+        } else if (a is TorrentFinishedAlert) {
+          a.handle!.saveResumeData();
+          quit = true;
+          break;
+        } else if (a is TorrentErrorAlert) {
+          a.handle!.saveResumeData();
+          quit = true;
+          break;
+        } else if (a is SaveResumeDataAlert) {
+          final x = a.params.write('${a.params.infoHash}.resume_file');
+          print('^^^ .resume_file saved $x');
+        } else if (a is SaveResumeDataFailedAlert) {
+          quit = true;
+          break;
+        } else if (a is TorrentResumedAlert) {
+          print('torrent_resumed_alert'); // pause -> resumed
+        } else if (a is StateChangedAlert) {
+          print('state_changed_alert ${a.prevState} => ${a.state}');
+          if (a.prevState == TorrentState.downloadingMetadata ||
+              a.state == TorrentState.downloading) {
+            a.handle?.saveResumeData();
+          }
+        } else if (a is StateUpdateAlert) {
+          print(a.status);
+        } else if (a is MetadataReceivedAlert) {
+          print('metadata_received_alert ${a.handle}');
+          a.handle?.saveResumeData();
+        } else if (a is TrackerReplyAlert) {
+          print('^^ tracker_reply_alert ${a.trackerUrl} ${a.numPeers}');
+        } else if (a is ExternalIpAlert) {
+          print('^^ external_ip_alert ${a.externalAddress}');
+        } else if (a is PieceFinishedAlert) {
+          print('^ piece_finished_alert ${a.pieceIndex}');
+        } else if (a is BlockFinishedAlert) {
+          // Too many: print('^ block_finished_alert ${a.pieceIndex} ${a.blockIndex}');
+        } else if (a is PerformanceAlert) {
+          print('^^^ performance_alert ${a.warningCode}');
+        }
     }
 
     // Notify session to alerts next session-stats
@@ -112,11 +152,11 @@ class SessionController extends ChangeNotifier {
     debugPrint('.sess saved');
 
     //
-    torrents.forEach((id, t) {
+    for (final t in torrents) {
       if (t.handle.needSaveResumeData) {
         t.handle.saveResumeData();
       }
-    });
+    }
   }
 
   /// pause/resume
@@ -124,10 +164,8 @@ class SessionController extends ChangeNotifier {
     sess.isPaused() ? sess.resume() : sess.pause();
   }
 
-  void _startTick() {
-    assert(ticker == null);
-    ticker = Timer.periodic(const Duration(seconds: 1), tick);
-  }
+  void ensureTicker() =>
+      ticker ??= Timer.periodic(const Duration(seconds: 1), tick);
 
   /// tasks.json
   /// load resume from id.resume
@@ -136,6 +174,14 @@ class SessionController extends ChangeNotifier {
     final completer = Completer<SessionController>();
 
     final p = SessionParams.readFrom(join(folder, '.sess'));
+
+    // ensure setting
+    final sp = p.settingsPack;
+    sp.setInt(SetName.alertMask, AlertCategory.all);
+    sp.setBool(SetName.enableDht, true);
+    sp.setBool(SetName.enableUpnp, true);
+    sp.setBool(SetName.enableNatpmp, true);
+
     final sess = Session.create(p);
 
     unawaited(loadTasks(join(folder, 'tasks.json')).then((tasks) {
@@ -143,6 +189,8 @@ class SessionController extends ChangeNotifier {
       final sc = SessionController._(folder, sess, tm)..applySetting();
 
       completer.complete(sc);
+    }, onError: (x) {
+      completer.complete(SessionController._(folder, sess, {}));
     }).catchError((Object e) {
       debugPrint('create session failed $e');
       completer.complete(SessionController._(folder, sess, {}));

@@ -16,17 +16,16 @@ class StatsItem {
     this.downloadPayload,
     this.downloadProtocol,
     this.uploadIpProtocol,
-    this.downloadIpProtocol,
   );
 
   factory StatsItem.from(StatsAlert statsAlert) {
+    // alert_types.hpp:1808
     return StatsItem(
-      statsAlert.uploadPayload,
-      statsAlert.uploadProtocol,
-      statsAlert.downloadPayload,
-      statsAlert.downloadProtocol,
-      statsAlert.uploadIpProtocol,
-      statsAlert.downloadIpProtocol,
+      statsAlert.transferred[0], // upload_payload,
+      statsAlert.transferred[1], // upload_protocol,
+      statsAlert.transferred[2], // download_payload,
+      statsAlert.transferred[3], // download_protocol,
+      statsAlert.transferred[4], // upload_ip_protocol,
     );
   }
 
@@ -35,11 +34,10 @@ class StatsItem {
   final int downloadPayload;
   final int downloadProtocol;
   final int uploadIpProtocol;
-  final int downloadIpProtocol;
 
   @override
   String toString() {
-    return '$uploadPayload $uploadProtocol $downloadPayload $downloadProtocol $uploadIpProtocol $downloadIpProtocol';
+    return '$uploadPayload $uploadProtocol $downloadPayload $downloadProtocol $uploadIpProtocol';
   }
 }
 
@@ -113,8 +111,8 @@ class Stats extends ChangeNotifier {
 
   int get currentD => history.isEmpty ? 0 : history.last.t[_idxD];
 
-  static final int _idxD = SessionStatsAlert.findMetricIdx('net.recv_bytes');
-  static final int _idxU = SessionStatsAlert.findMetricIdx('net.sent_bytes');
+  static final int _idxD = SessionStatsAlert.findMetricIndex('net.recv_bytes');
+  static final int _idxU = SessionStatsAlert.findMetricIndex('net.sent_bytes');
 
   Dimension _speedOf(int idx) {
     if (history.isEmpty) {

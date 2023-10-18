@@ -1,10 +1,12 @@
+import 'dart:io';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
+import 'package:libtorrent/libtorrent.dart';
 import 'package:provider/provider.dart';
 
 import 'session.dart';
-import 'task.dart';
 import 'session_panel.dart';
+import 'task.dart';
 import 'tile.dart';
 
 class HomePage extends StatefulWidget {
@@ -32,13 +34,17 @@ class _HomePageState extends State<HomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
+            onPressed: () async {
+              final hc = HttpClient();
+              final req = await hc.getUrl(Uri.parse('http://baidu.com'));
+              final resp = await req.close();
+              print(resp.headers);
+              hc.close(force: true);
+
               sc.add(Task.fromUri(
-                  'magnet:?xt=urn:btih:3c80d623bf867337d843d3727cae7053b23e9b4e')!);
-              // sc.sess.add(AddTorrentParams.parseMagnet(
-              //   'magnet:?xt=urn:btih:0497dca6eaf2340ce4f1a982047dcafa738a6170',
-              //   '.',
-              // )!);
+                // 'magnet:?xt=urn:btih:89ed9ed8e1adedf731ad2396ff786924a047da59&dn=[www.mp4so.com]敢死队4：最终章.2023.HD1080p.中英双字.mp4&tr=https://tracker.iriseden.fr:443/announce&tr=https://tr.highstar.shop:443/announce&tr=https://tr.fuckbitcoin.xyz:443/announce&tr=https://tr.doogh.club:443/announce&tr=https://tr.burnabyhighstar.com:443/announce&tr=https://t.btcland.xyz:443/announce&tr=http://vps02.net.orel.ru:80/announce&tr=https://tracker.kuroy.me:443/announce&tr=http://tr.cili001.com:8070/announce&tr=http://t.overflow.biz:6969/announce&tr=http://t.nyaatracker.com:80/announce&tr=http://open.acgnxtracker.com:80/announce&tr=http://nyaa.tracker.wf:7777/announce&tr=http://home.yxgz.vip:6969/announce&tr=http://buny.uk:6969/announce&tr=https://tracker.tamersunion.org:443/announce&tr=https://tracker.nanoha.org:443/announce&tr=https://tracker.loligirl.cn:443/announce&tr=udp://bubu.mapfactor.com:6969/announce&tr=http://share.camoe.cn:8080/announce&tr=udp://movies.zsw.ca:6969/announce&tr=udp://ipv4.tracker.harry.lu:80/announce&tr=udp://tracker.sylphix.com:6969/announce&tr=http://95.216.22.207:9001/announce',
+                'magnet:?xt=urn:btih:3194991c30c68eb8b98efe2a885b2e16fe737864&dn=[www.mp4so.com]%E5%A4%8F%E6%B4%9B%E5%85%8B%E7%9A%84%E5%AD%A9%E5%AD%90%E4%BB%AC.%E7%94%B5%E5%BD%B1%E7%89%88.2023.BD1080p.%E4%B8%AD%E6%96%87%E5%AD%97%E5%B9%95.mp4&tr=https://tracker.iriseden.fr:443/announce&tr=https://tr.highstar.shop:443/announce&tr=https://tr.fuckbitcoin.xyz:443/announce&tr=https://tr.doogh.club:443/announce&tr=https://tr.burnabyhighstar.com:443/announce&tr=https://t.btcland.xyz:443/announce&tr=http://vps02.net.orel.ru:80/announce&tr=https://tracker.kuroy.me:443/announce&tr=http://tr.cili001.com:8070/announce&tr=http://t.overflow.biz:6969/announce&tr=http://t.nyaatracker.com:80/announce&tr=http://open.acgnxtracker.com:80/announce&tr=http://nyaa.tracker.wf:7777/announce&tr=http://home.yxgz.vip:6969/announce&tr=http://buny.uk:6969/announce&tr=https://tracker.tamersunion.org:443/announce&tr=https://tracker.nanoha.org:443/announce&tr=https://tracker.loligirl.cn:443/announce&tr=udp://bubu.mapfactor.com:6969/announce&tr=http://share.camoe.cn:8080/announce&tr=udp://movies.zsw.ca:6969/announce&tr=udp://ipv4.tracker.harry.lu:80/announce&tr=udp://tracker.sylphix.com:6969/announce&tr=http://95.216.22.207:9001/announce',
+              )!);
             },
           )
         ],
@@ -63,9 +69,9 @@ class _HomePageState extends State<HomePage> {
         onPressed: () {
           FlutterClipboard.paste().then((value) {
             debugPrint('pasted $value');
-            final p = AddTorrentParams.parseMagnet(value, '.');
-            if (p != null) {
-              sc.sess.add(p);
+            final task = Task.fromUri(value);
+            if (task != null) {
+              sc.add(task);
             }
           });
         },

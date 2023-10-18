@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'session.dart';
+import 'package:libtorrent/libtorrent.dart';
 import 'status_panel.dart';
 import 'task.dart';
 import 'task_detail.dart';
@@ -55,7 +55,7 @@ class _TaskTileState extends State<TaskTile> {
           SizedBox(
             // preferredSize: const Size.fromHeight(200),
             height: 200,
-            child: status == null ? Container() : StatusPanel(status),
+            child: status == null ? Container() : StatusPanel(status.inner),
           ),
         if (action)
           Row(
@@ -105,12 +105,12 @@ class FilesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final files = t.handle?.info.files;
+    final files = t.handle!.info!.files;
     return SizedBox(
       height: 200,
       child: ListView(
         children: List.generate(
-          files?.numFiles ?? 0,
+          files.numFiles,
           (i) => ListTile(
             // title: Text(files.fileName(i)),
             // subtitle: Text(Dimension.size(files.fileSize(i)).toString()),
