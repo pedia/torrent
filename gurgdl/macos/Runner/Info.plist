@@ -29,6 +29,6 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSAllowsArbitraryLoads</key>
-    <true/>
+	<true/>
 </dict>
 </plist>

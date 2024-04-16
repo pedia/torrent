@@ -121,9 +121,9 @@ class Counter {
     };
 
     for (final e in map.entries) {
-      if (!names[e.key]!.contains('log')) {
+      // if (!names[e.key]!.contains('log')) {
         print('  ${names[e.key]}: ${e.value}');
-      }
+      // }
     }
   }
 }
@@ -193,16 +193,20 @@ class SessionController extends ChangeNotifier {
   void tick(_) {
     // empty alerts queue
     final as = sess.alerts;
-    debugPrint('alerts ${as.length}');
+    debugPrint('$c alerts ${as.length}');
 
     c++;
+    if (c % 10 == 0) {
+      counter.dump();
+    }
+
     if (as.length == 0) {
       return;
     }
 
     for (var i = 0; i < as.length; i++) {
       final a = as.itemOf(i);
-      // print(a);
+      print(a);
 
       counter.add(a?.type);
 
@@ -257,9 +261,6 @@ class SessionController extends ChangeNotifier {
       }
     }
 
-    if (c % 10 == 0) {
-      counter.dump();
-    }
     // Notify session to alerts next session-stats
     // sess.postStats();
     // print('post ${DateTime.now()}');
@@ -292,13 +293,13 @@ class SessionController extends ChangeNotifier {
   }
 
   void ensureTicker() =>
-      ticker ??= Timer.periodic(const Duration(seconds: 1), tick);
+      ticker ??= Timer.periodic(const Duration(seconds: 2), tick);
 
   /// tasks.json
   /// load resume from id.resume
   ///
-  static Future<SessionController> createSession(String folder) async {
-    final completer = Completer<SessionController>();
+  static SessionController createSession(String folder) {
+    // final completer = Completer<SessionController>();
 
     final p = SessionParams.readFrom(join(folder, '.sess'));
 
@@ -311,21 +312,31 @@ class SessionController extends ChangeNotifier {
     sp.setBool(SetName.enableNatpmp, true);
 
     final sess = Session.create(p);
+    print('alertMask: ${sess.settingsPack.getInt(SetName.alertMask)}');
+    print('upnp: ${sess.settingsPack.getBool(SetName.enableUpnp)}');
+    print('netpmp: ${sess.settingsPack.getBool(SetName.enableNatpmp)}');
+    print(
+        'alertQueueSize: ${sess.settingsPack.getInt(SetName.alertQueueSize)}');
 
-    unawaited(loadTasks(join(folder, 'tasks.json')).then((tasks) {
-      final tm = Map.fromEntries(tasks.map((e) => MapEntry(e.infoHash, e)));
-      final sc = SessionController._(folder, sess, tm)..applySetting();
+    sess.settingsPack.dump();
 
-      completer.complete(sc);
-    }, onError: (x) {
-      completer.complete(SessionController._(folder, sess, {}));
-    }).catchError((Object e) {
-      debugPrint('create session failed $e');
-      completer.complete(SessionController._(folder, sess, {}));
-    }));
-
-    return completer.future;
+    return SessionController._(folder, sess, {});
   }
+
+  // unawaited(loadTasks(join(folder, 'tasks.json')).then((tasks) {
+  //   final tm = Map.fromEntries(tasks.map((e) => MapEntry(e.infoHash, e)));
+  //   final sc = SessionController._(folder, sess, tm)..applySetting();
+
+  //   completer.complete(sc);
+  // }, onError: (x) {
+  //   completer.complete(SessionController._(folder, sess, {}));
+  // }).catchError((Object e) {
+  //   debugPrint('create session failed $e');
+  //   completer.complete(SessionController._(folder, sess, {}));
+  // }));
+
+  //   return completer.future;
+  // }
 
   static Future<List<Task>> loadTasks(String fp) async {
     final content = await File(fp).readAsString();

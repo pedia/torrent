@@ -1,10 +1,13 @@
-import 'dart:io';
+// import 'dart:ffi';
+// import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_window_close/flutter_window_close.dart';
+// import 'package:flutter_window_close/flutter_window_close.dart';
+import 'package:libtorrent/libtorrent.dart';
+import 'package:path/path.dart' as ph;
 import 'package:provider/provider.dart';
-import 'package:system_tray/system_tray.dart';
-import 'package:window_size/window_size.dart';
+// import 'package:system_tray/system_tray.dart';
+// import 'package:window_size/window_size.dart';
 
 import 'homepage.dart';
 import 'session.dart';
@@ -13,26 +16,30 @@ import 'stats.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final tray = SystemTray();
-  tray
-      .initSystemTray(
-    iconPath: Platform.isWindows ? 'assets/app.ico' : 'assets/app_icon_32.png',
-    toolTip: 'GurgleDL',
-  )
-      .then((b) {
-    tray.registerSystemTrayEventHandler((eventName) {
-      debugPrint('tray $eventName');
-      if (eventName == kSystemTrayEventClick) {
-        setWindowVisibility(visible: true);
-      } else if (eventName == kSystemTrayEventRightClick) {
-        setWindowVisibility(visible: true);
-      }
-    });
-  });
+  print(ph.current);
+
+  Libtc.bind();
+
+  // final tray = SystemTray();
+  // tray
+  //     .initSystemTray(
+  //   iconPath: Platform.isWindows ? 'assets/app.ico' : 'assets/app_icon_32.png',
+  //   toolTip: 'GurgleDL',
+  // )
+  //     .then((b) {
+  //   tray.registerSystemTrayEventHandler((eventName) {
+  //     debugPrint('tray $eventName');
+  //     if (eventName == kSystemTrayEventClick) {
+  //       setWindowVisibility(visible: true);
+  //     } else if (eventName == kSystemTrayEventRightClick) {
+  //       setWindowVisibility(visible: true);
+  //     }
+  //   });
+  // });
 
   runApp(const MyApp());
 
-  tray.destroy().then((value) => null);
+  // tray.destroy().then((value) => null);
 }
 
 class MyApp extends StatefulWidget {
@@ -47,15 +54,12 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    FlutterWindowClose.setWindowShouldCloseHandler(() async {
-      sc?.dispose();
-      return true;
-    });
+    // FlutterWindowClose.setWindowShouldCloseHandler(() async {
+    //   sc?.dispose();
+    //   return true;
+    // });
 
-    SessionController.createSession('.').then((value) {
-      setState(() => sc = value);
-    });
-
+    sc = SessionController.createSession('.');
     super.initState();
   }
 
@@ -72,7 +76,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Gurgle',
       theme: ThemeData(useMaterial3: true, primaryColor: Colors.green),
       home: sc == null
-          ? const Center(child: Text('loading'))
+          ? const Material(child: Center(child: Text('loading')))
           : MultiProvider(
               providers: [
                 ChangeNotifierProvider<SessionController>.value(value: sc!),
