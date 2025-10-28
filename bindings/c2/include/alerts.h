@@ -11,12 +11,13 @@ typedef uint8_t socket_type_t;
 typedef struct torrent_removed_alert torrent_removed_alert;
 LIBTORRENT_C_DECL torrent_removed_alert* Alert2torrent_removed_alert(Alert*);
 // info_hash_t info_hashes
-LIBTORRENT_C_DECL StdString* torrent_removed_alert_info_hashes(torrent_removed_alert*);
+// LIBTORRENT_C_DECL info_hash_t torrent_removed_alert_info_hashes(torrent_removed_alert*);
 
 // read_piece_alert
 typedef struct read_piece_alert read_piece_alert;
 LIBTORRENT_C_DECL read_piece_alert* Alert2read_piece_alert(Alert*);
-LIBTORRENT_C_DECL error_code* read_piece_alert_error(read_piece_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code read_piece_alert_error(read_piece_alert*);
 // boost::shared_array<char> buffer
 // LIBTORRENT_C_DECL boost::shared_array<char> read_piece_alert_buffer(read_piece_alert*);
 LIBTORRENT_C_DECL piece_index_t read_piece_alert_piece(read_piece_alert*);
@@ -45,28 +46,30 @@ typedef struct file_rename_failed_alert file_rename_failed_alert;
 LIBTORRENT_C_DECL file_rename_failed_alert* Alert2file_rename_failed_alert(Alert*);
 LIBTORRENT_C_DECL file_index_t file_rename_failed_alert_index(file_rename_failed_alert*);
 
-LIBTORRENT_C_DECL error_code* file_rename_failed_alert_error(file_rename_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code file_rename_failed_alert_error(file_rename_failed_alert*);
 
 // performance_alert
 typedef struct performance_alert performance_alert;
 LIBTORRENT_C_DECL performance_alert* Alert2performance_alert(Alert*);
 // performance_warning_t warning_code
-LIBTORRENT_C_DECL int performance_alert_warning_code(performance_alert*);
+// LIBTORRENT_C_DECL performance_warning_t performance_alert_warning_code(performance_alert*);
 
 // state_changed_alert
 typedef struct state_changed_alert state_changed_alert;
 LIBTORRENT_C_DECL state_changed_alert* Alert2state_changed_alert(Alert*);
 // torrent_status::state_t state
-LIBTORRENT_C_DECL int state_changed_alert_state(state_changed_alert*);
+// LIBTORRENT_C_DECL torrent_status::state_t state_changed_alert_state(state_changed_alert*);
 // torrent_status::state_t prev_state
-LIBTORRENT_C_DECL int state_changed_alert_prev_state(state_changed_alert*);
+// LIBTORRENT_C_DECL torrent_status::state_t state_changed_alert_prev_state(state_changed_alert*);
 
 // tracker_error_alert
 typedef struct tracker_error_alert tracker_error_alert;
 LIBTORRENT_C_DECL tracker_error_alert* Alert2tracker_error_alert(Alert*);
 LIBTORRENT_C_DECL int tracker_error_alert_times_in_row(tracker_error_alert*);
 
-LIBTORRENT_C_DECL error_code* tracker_error_alert_error(tracker_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code tracker_error_alert_error(tracker_error_alert*);
 LIBTORRENT_C_DECL uint8_t tracker_error_alert_op(tracker_error_alert*);
 
 LIBTORRENT_C_DECL char const* tracker_error_alert_failure_reason(tracker_error_alert*);
@@ -83,7 +86,8 @@ LIBTORRENT_C_DECL int scrape_reply_alert_complete(scrape_reply_alert*);
 // scrape_failed_alert
 typedef struct scrape_failed_alert scrape_failed_alert;
 LIBTORRENT_C_DECL scrape_failed_alert* Alert2scrape_failed_alert(Alert*);
-LIBTORRENT_C_DECL error_code* scrape_failed_alert_error(scrape_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code scrape_failed_alert_error(scrape_failed_alert*);
 LIBTORRENT_C_DECL char const* scrape_failed_alert_error_message(scrape_failed_alert*);
 
 
@@ -102,7 +106,8 @@ LIBTORRENT_C_DECL char const* storage_moved_alert_old_path(storage_moved_alert*)
 // storage_moved_failed_alert
 typedef struct storage_moved_failed_alert storage_moved_failed_alert;
 LIBTORRENT_C_DECL storage_moved_failed_alert* Alert2storage_moved_failed_alert(Alert*);
-LIBTORRENT_C_DECL error_code* storage_moved_failed_alert_error(storage_moved_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code storage_moved_failed_alert_error(storage_moved_failed_alert*);
 LIBTORRENT_C_DECL char const* storage_moved_failed_alert_file_path(storage_moved_failed_alert*);
 
 LIBTORRENT_C_DECL uint8_t storage_moved_failed_alert_op(storage_moved_failed_alert*);
@@ -117,7 +122,8 @@ LIBTORRENT_C_DECL torrent_deleted_alert* Alert2torrent_deleted_alert(Alert*);
 // torrent_delete_failed_alert
 typedef struct torrent_delete_failed_alert torrent_delete_failed_alert;
 LIBTORRENT_C_DECL torrent_delete_failed_alert* Alert2torrent_delete_failed_alert(Alert*);
-LIBTORRENT_C_DECL error_code* torrent_delete_failed_alert_error(torrent_delete_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code torrent_delete_failed_alert_error(torrent_delete_failed_alert*);
 // info_hash_t info_hashes
 // LIBTORRENT_C_DECL info_hash_t torrent_delete_failed_alert_info_hashes(torrent_delete_failed_alert*);
 
@@ -125,12 +131,13 @@ LIBTORRENT_C_DECL error_code* torrent_delete_failed_alert_error(torrent_delete_f
 typedef struct save_resume_data_alert save_resume_data_alert;
 LIBTORRENT_C_DECL save_resume_data_alert* Alert2save_resume_data_alert(Alert*);
 // add_torrent_params params
-LIBTORRENT_C_DECL AddTorrentParams* save_resume_data_alert_params(save_resume_data_alert*);
+// LIBTORRENT_C_DECL add_torrent_params save_resume_data_alert_params(save_resume_data_alert*);
 
 // save_resume_data_failed_alert
 typedef struct save_resume_data_failed_alert save_resume_data_failed_alert;
 LIBTORRENT_C_DECL save_resume_data_failed_alert* Alert2save_resume_data_failed_alert(Alert*);
-LIBTORRENT_C_DECL error_code* save_resume_data_failed_alert_error(save_resume_data_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code save_resume_data_failed_alert_error(save_resume_data_failed_alert*);
 
 // torrent_paused_alert
 typedef struct torrent_paused_alert torrent_paused_alert;
@@ -151,7 +158,8 @@ LIBTORRENT_C_DECL file_error_alert* Alert2file_error_alert(Alert*);
 // listen_failed_alert
 typedef struct listen_failed_alert listen_failed_alert;
 LIBTORRENT_C_DECL listen_failed_alert* Alert2listen_failed_alert(Alert*);
-LIBTORRENT_C_DECL error_code* listen_failed_alert_error(listen_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code listen_failed_alert_error(listen_failed_alert*);
 LIBTORRENT_C_DECL char const* listen_failed_alert_listen_interface(listen_failed_alert*);
 
 LIBTORRENT_C_DECL uint8_t listen_failed_alert_op(listen_failed_alert*);
@@ -170,7 +178,8 @@ LIBTORRENT_C_DECL uint8_t listen_succeeded_alert_socket_type(listen_succeeded_al
 // fastresume_rejected_alert
 typedef struct fastresume_rejected_alert fastresume_rejected_alert;
 LIBTORRENT_C_DECL fastresume_rejected_alert* Alert2fastresume_rejected_alert(Alert*);
-LIBTORRENT_C_DECL error_code* fastresume_rejected_alert_error(fastresume_rejected_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code fastresume_rejected_alert_error(fastresume_rejected_alert*);
 LIBTORRENT_C_DECL char const* fastresume_rejected_alert_file_path(fastresume_rejected_alert*);
 
 LIBTORRENT_C_DECL operation_t fastresume_rejected_alert_op(fastresume_rejected_alert*);
@@ -183,7 +192,8 @@ LIBTORRENT_C_DECL cache_flushed_alert* Alert2cache_flushed_alert(Alert*);
 // torrent_error_alert
 typedef struct torrent_error_alert torrent_error_alert;
 LIBTORRENT_C_DECL torrent_error_alert* Alert2torrent_error_alert(Alert*);
-LIBTORRENT_C_DECL error_code* torrent_error_alert_error(torrent_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code torrent_error_alert_error(torrent_error_alert*);
 LIBTORRENT_C_DECL char const* torrent_error_alert_filename(torrent_error_alert*);
 
 
@@ -196,19 +206,20 @@ typedef struct add_torrent_alert add_torrent_alert;
 LIBTORRENT_C_DECL add_torrent_alert* Alert2add_torrent_alert(Alert*);
 // add_torrent_params params
 // LIBTORRENT_C_DECL add_torrent_params add_torrent_alert_params(add_torrent_alert*);
-LIBTORRENT_C_DECL error_code* add_torrent_alert_error(add_torrent_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code add_torrent_alert_error(add_torrent_alert*);
 
 // state_update_alert
 typedef struct state_update_alert state_update_alert;
 LIBTORRENT_C_DECL state_update_alert* Alert2state_update_alert(Alert*);
 // std::vector<torrent_status> status
-LIBTORRENT_C_DECL int state_update_alert_status(state_update_alert*, torrent_status**);
+// LIBTORRENT_C_DECL std::vector<torrent_status> state_update_alert_status(state_update_alert*);
 
 // session_stats_alert
 typedef struct session_stats_alert session_stats_alert;
 LIBTORRENT_C_DECL session_stats_alert* Alert2session_stats_alert(Alert*);
 // span<std::int64_t const> counters
-LIBTORRENT_C_DECL int session_stats_alert_counters(session_stats_alert*, int64_t**);
+// LIBTORRENT_C_DECL span<std::int64_t const> session_stats_alert_counters(session_stats_alert*);
 
 // dht_immutable_item_alert
 typedef struct dht_immutable_item_alert dht_immutable_item_alert;
@@ -226,9 +237,9 @@ LIBTORRENT_C_DECL dht_mutable_item_alert* Alert2dht_mutable_item_alert(Alert*);
 // std::array<char, 64> signature
 // LIBTORRENT_C_DECL std::array<char, 64> dht_mutable_item_alert_signature(dht_mutable_item_alert*);
 // std::int64_t seq
-LIBTORRENT_C_DECL int64_t dht_mutable_item_alert_seq(dht_mutable_item_alert*);
+// LIBTORRENT_C_DECL std::int64_t dht_mutable_item_alert_seq(dht_mutable_item_alert*);
 // std::string salt
-LIBTORRENT_C_DECL StdString* dht_mutable_item_alert_salt(dht_mutable_item_alert*);
+// LIBTORRENT_C_DECL std::string dht_mutable_item_alert_salt(dht_mutable_item_alert*);
 // entry item
 // LIBTORRENT_C_DECL entry dht_mutable_item_alert_item(dht_mutable_item_alert*);
 // bool authoritative
@@ -268,7 +279,7 @@ LIBTORRENT_C_DECL peer_info_alert* Alert2peer_info_alert(Alert*);
 typedef struct file_progress_alert file_progress_alert;
 LIBTORRENT_C_DECL file_progress_alert* Alert2file_progress_alert(Alert*);
 // aux::vector<std::int64_t, file_index_t> files
-LIBTORRENT_C_DECL int file_progress_alert_files(file_progress_alert*, int64_t*);
+// LIBTORRENT_C_DECL aux::vector<std::int64_t, file_index_t> file_progress_alert_files(file_progress_alert*);
 
 // piece_info_alert
 typedef struct piece_info_alert piece_info_alert;
@@ -277,6 +288,12 @@ LIBTORRENT_C_DECL piece_info_alert* Alert2piece_info_alert(Alert*);
 // LIBTORRENT_C_DECL std::vector<partial_piece_info> piece_info_alert_piece_info(piece_info_alert*);
 // std::vector<block_info> block_data
 // LIBTORRENT_C_DECL std::vector<block_info> piece_info_alert_block_data(piece_info_alert*);
+
+// tracker_list_alert
+typedef struct tracker_list_alert tracker_list_alert;
+LIBTORRENT_C_DECL tracker_list_alert* Alert2tracker_list_alert(Alert*);
+// std::vector<announce_entry> trackers
+// LIBTORRENT_C_DECL std::vector<announce_entry> tracker_list_alert_trackers(tracker_list_alert*);
 
 // piece_availability_alert
 typedef struct piece_availability_alert piece_availability_alert;
@@ -293,7 +310,6 @@ LIBTORRENT_C_DECL char const* tracker_warning_alert_warning_message(tracker_warn
 // tracker_reply_alert
 typedef struct tracker_reply_alert tracker_reply_alert;
 LIBTORRENT_C_DECL tracker_reply_alert* Alert2tracker_reply_alert(Alert*);
-LIBTORRENT_C_DECL const char* tracker_reply_alert_tracker_url(tracker_reply_alert*);
 LIBTORRENT_C_DECL int tracker_reply_alert_num_peers(tracker_reply_alert*);
 
 
@@ -332,7 +348,8 @@ typedef struct peer_error_alert peer_error_alert;
 LIBTORRENT_C_DECL peer_error_alert* Alert2peer_error_alert(Alert*);
 LIBTORRENT_C_DECL operation_t peer_error_alert_op(peer_error_alert*);
 
-LIBTORRENT_C_DECL error_code* peer_error_alert_error(peer_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code peer_error_alert_error(peer_error_alert*);
 
 // peer_connect_alert
 typedef struct peer_connect_alert peer_connect_alert;
@@ -349,7 +366,8 @@ LIBTORRENT_C_DECL socket_type_t peer_disconnected_alert_socket_type(peer_disconn
 
 LIBTORRENT_C_DECL operation_t peer_disconnected_alert_op(peer_disconnected_alert*);
 
-LIBTORRENT_C_DECL error_code* peer_disconnected_alert_error(peer_disconnected_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code peer_disconnected_alert_error(peer_disconnected_alert*);
 // close_reason_t reason
 // LIBTORRENT_C_DECL close_reason_t peer_disconnected_alert_reason(peer_disconnected_alert*);
 
@@ -416,14 +434,16 @@ typedef struct url_seed_alert url_seed_alert;
 LIBTORRENT_C_DECL url_seed_alert* Alert2url_seed_alert(Alert*);
 LIBTORRENT_C_DECL char const* url_seed_alert_server_url(url_seed_alert*);
 
-LIBTORRENT_C_DECL error_code* url_seed_alert_error(url_seed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code url_seed_alert_error(url_seed_alert*);
 LIBTORRENT_C_DECL char const* url_seed_alert_error_message(url_seed_alert*);
 
 
 // metadata_failed_alert
 typedef struct metadata_failed_alert metadata_failed_alert;
 LIBTORRENT_C_DECL metadata_failed_alert* Alert2metadata_failed_alert(Alert*);
-LIBTORRENT_C_DECL error_code* metadata_failed_alert_error(metadata_failed_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code metadata_failed_alert_error(metadata_failed_alert*);
 
 // metadata_received_alert
 typedef struct metadata_received_alert metadata_received_alert;
@@ -434,12 +454,12 @@ typedef struct udp_error_alert udp_error_alert;
 LIBTORRENT_C_DECL udp_error_alert* Alert2udp_error_alert(Alert*);
 LIBTORRENT_C_DECL uint8_t udp_error_alert_operation(udp_error_alert*);
 
-LIBTORRENT_C_DECL error_code* udp_error_alert_error(udp_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code udp_error_alert_error(udp_error_alert*);
 
 // external_ip_alert
 typedef struct external_ip_alert external_ip_alert;
 LIBTORRENT_C_DECL external_ip_alert* Alert2external_ip_alert(Alert*);
-LIBTORRENT_C_DECL StdString* external_ip_alert_external_address(Alert*);
 
 // portmap_error_alert
 typedef struct portmap_error_alert portmap_error_alert;
@@ -450,7 +470,8 @@ LIBTORRENT_C_DECL portmap_error_alert* Alert2portmap_error_alert(Alert*);
 // LIBTORRENT_C_DECL portmap_transport portmap_error_alert_map_transport(portmap_error_alert*);
 // aux::noexcept_movable<address> local_address
 // LIBTORRENT_C_DECL aux::noexcept_movable<address> portmap_error_alert_local_address(portmap_error_alert*);
-LIBTORRENT_C_DECL error_code* portmap_error_alert_error(portmap_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code portmap_error_alert_error(portmap_error_alert*);
 
 // portmap_alert
 typedef struct portmap_alert portmap_alert;
@@ -500,7 +521,7 @@ LIBTORRENT_C_DECL dht_get_peers_alert* Alert2dht_get_peers_alert(Alert*);
 typedef struct stats_alert stats_alert;
 LIBTORRENT_C_DECL stats_alert* Alert2stats_alert(Alert*);
 // std::array<int, num_channels> transferred
-LIBTORRENT_C_DECL int stats_alert_transferred(stats_alert*, int64_t**);
+// LIBTORRENT_C_DECL std::array<int, num_channels> stats_alert_transferred(stats_alert*);
 LIBTORRENT_C_DECL int stats_alert_interval(stats_alert*);
 
 
@@ -529,7 +550,8 @@ LIBTORRENT_C_DECL socket_type_t incoming_connection_alert_socket_type(incoming_c
 // dht_error_alert
 typedef struct dht_error_alert dht_error_alert;
 LIBTORRENT_C_DECL dht_error_alert* Alert2dht_error_alert(Alert*);
-LIBTORRENT_C_DECL error_code* dht_error_alert_error(dht_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code dht_error_alert_error(dht_error_alert*);
 LIBTORRENT_C_DECL operation_t dht_error_alert_op(dht_error_alert*);
 
 
@@ -552,7 +574,8 @@ LIBTORRENT_C_DECL int dht_put_alert_num_success(dht_put_alert*);
 // i2p_alert
 typedef struct i2p_alert i2p_alert;
 LIBTORRENT_C_DECL i2p_alert* Alert2i2p_alert(Alert*);
-LIBTORRENT_C_DECL error_code* i2p_alert_error(i2p_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code i2p_alert_error(i2p_alert*);
 
 // dht_outgoing_get_peers_alert
 typedef struct dht_outgoing_get_peers_alert dht_outgoing_get_peers_alert;
@@ -591,7 +614,8 @@ typedef struct lsd_error_alert lsd_error_alert;
 LIBTORRENT_C_DECL lsd_error_alert* Alert2lsd_error_alert(Alert*);
 // aux::noexcept_movable<address> local_address
 // LIBTORRENT_C_DECL aux::noexcept_movable<address> lsd_error_alert_local_address(lsd_error_alert*);
-LIBTORRENT_C_DECL error_code* lsd_error_alert_error(lsd_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code lsd_error_alert_error(lsd_error_alert*);
 
 // dht_stats_alert
 typedef struct dht_stats_alert dht_stats_alert;
@@ -650,7 +674,8 @@ LIBTORRENT_C_DECL picker_log_alert* Alert2picker_log_alert(Alert*);
 // session_error_alert
 typedef struct session_error_alert session_error_alert;
 LIBTORRENT_C_DECL session_error_alert* Alert2session_error_alert(Alert*);
-LIBTORRENT_C_DECL error_code* session_error_alert_error(session_error_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code session_error_alert_error(session_error_alert*);
 
 // dht_live_nodes_alert
 typedef struct dht_live_nodes_alert dht_live_nodes_alert;
@@ -697,7 +722,8 @@ LIBTORRENT_C_DECL block_uploaded_alert* Alert2block_uploaded_alert(Alert*);
 // socks5_alert
 typedef struct socks5_alert socks5_alert;
 LIBTORRENT_C_DECL socks5_alert* Alert2socks5_alert(Alert*);
-LIBTORRENT_C_DECL error_code* socks5_alert_error(socks5_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code socks5_alert_error(socks5_alert*);
 LIBTORRENT_C_DECL operation_t socks5_alert_op(socks5_alert*);
 
 // aux::noexcept_movable<tcp::endpoint> ip
@@ -706,7 +732,8 @@ LIBTORRENT_C_DECL operation_t socks5_alert_op(socks5_alert*);
 // file_prio_alert
 typedef struct file_prio_alert file_prio_alert;
 LIBTORRENT_C_DECL file_prio_alert* Alert2file_prio_alert(Alert*);
-LIBTORRENT_C_DECL error_code* file_prio_alert_error(file_prio_alert*);
+// error_code error
+// LIBTORRENT_C_DECL error_code file_prio_alert_error(file_prio_alert*);
 LIBTORRENT_C_DECL operation_t file_prio_alert_op(file_prio_alert*);
 
 

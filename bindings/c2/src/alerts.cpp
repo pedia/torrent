@@ -9,14 +9,8 @@
 #include "libtorrent/write_resume_data.hpp"
 #include "libtorrent/session_stats.hpp"
 #include "libtorrent/alert_types.hpp"
-#include "libtorrent/hex.hpp"
 
 extern "C" {
-
-// in library.cpp
-extern error_code* error_code_new(lt::error_code const&);
-extern StdString* StdString_New(std::string const &s);
-extern void s2s(lt::torrent_status const &ts, torrent_status* s, int struct_size);
 
 torrent_removed_alert* Alert2torrent_removed_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -25,15 +19,10 @@ torrent_removed_alert* Alert2torrent_removed_alert(Alert* out) {
     );
 }
 
-StdString* torrent_removed_alert_info_hashes(torrent_removed_alert* out) {
-  auto* a = reinterpret_cast<lt::torrent_removed_alert*>(out);
-  // return a->info_hashes;
-  return StdString_New(std::string(
-			lt::aux::to_hex(lt::span<char const>(
-          a->info_hashes.get_best().to_string()
-        ))
-			));
-}
+// info_hash_t torrent_removed_alert_info_hashes(torrent_removed_alert* out) {
+//   auto* a = reinterpret_cast<lt::torrent_removed_alert*>(out);
+//   return a->info_hashes;
+// }
 read_piece_alert* Alert2read_piece_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<read_piece_alert*>(
@@ -41,17 +30,17 @@ read_piece_alert* Alert2read_piece_alert(Alert* out) {
     );
 }
 
-error_code* read_piece_alert_error(read_piece_alert* out) {
-  auto* a = reinterpret_cast<lt::read_piece_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code read_piece_alert_error(read_piece_alert* out) {
+//   auto* a = reinterpret_cast<lt::read_piece_alert*>(out);
+//   return a->error;
+// }
 // boost::shared_array<char> read_piece_alert_buffer(read_piece_alert* out) {
 //   auto* a = reinterpret_cast<lt::read_piece_alert*>(out);
 //   return a->buffer;
 // }
-int32_t read_piece_alert_piece(read_piece_alert* out) {
+piece_index_t read_piece_alert_piece(read_piece_alert* out) {
   auto* a = reinterpret_cast<lt::read_piece_alert*>(out);
-  return (std::int32_t)a->piece;
+  return a->piece;
 }
 int read_piece_alert_size(read_piece_alert* out) {
   auto* a = reinterpret_cast<lt::read_piece_alert*>(out);
@@ -66,7 +55,7 @@ file_completed_alert* Alert2file_completed_alert(Alert* out) {
 
 file_index_t file_completed_alert_index(file_completed_alert* out) {
   auto* a = reinterpret_cast<lt::file_completed_alert*>(out);
-  return (std::int32_t)a->index;
+  return a->index;
 }
 file_renamed_alert* Alert2file_renamed_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -85,7 +74,7 @@ char const* file_renamed_alert_old_name(file_renamed_alert* out) {
 }
 file_index_t file_renamed_alert_index(file_renamed_alert* out) {
   auto* a = reinterpret_cast<lt::file_renamed_alert*>(out);
-  return (std::int32_t)a->index;
+  return a->index;
 }
 file_rename_failed_alert* Alert2file_rename_failed_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -96,22 +85,23 @@ file_rename_failed_alert* Alert2file_rename_failed_alert(Alert* out) {
 
 file_index_t file_rename_failed_alert_index(file_rename_failed_alert* out) {
   auto* a = reinterpret_cast<lt::file_rename_failed_alert*>(out);
-  return (std::int32_t)a->index;
+  return a->index;
 }
-error_code* file_rename_failed_alert_error(file_rename_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::file_rename_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code file_rename_failed_alert_error(file_rename_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::file_rename_failed_alert*>(out);
+//   return a->error;
+// }
 performance_alert* Alert2performance_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<performance_alert*>(
       lt::alert_cast<lt::performance_alert>(a)
     );
 }
-int performance_alert_warning_code(performance_alert* out) {
-  auto* a = reinterpret_cast<lt::performance_alert*>(out);
-  return a->warning_code;
-}
+
+// performance_warning_t performance_alert_warning_code(performance_alert* out) {
+//   auto* a = reinterpret_cast<lt::performance_alert*>(out);
+//   return a->warning_code;
+// }
 state_changed_alert* Alert2state_changed_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<state_changed_alert*>(
@@ -119,14 +109,14 @@ state_changed_alert* Alert2state_changed_alert(Alert* out) {
     );
 }
 
-int state_changed_alert_state(state_changed_alert* out) {
-  auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
-  return a->state;
-}
-int state_changed_alert_prev_state(state_changed_alert* out) {
-  auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
-  return a->prev_state;
-}
+// torrent_status::state_t state_changed_alert_state(state_changed_alert* out) {
+//   auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
+//   return a->state;
+// }
+// torrent_status::state_t state_changed_alert_prev_state(state_changed_alert* out) {
+//   auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
+//   return a->prev_state;
+// }
 tracker_error_alert* Alert2tracker_error_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<tracker_error_alert*>(
@@ -138,13 +128,13 @@ int tracker_error_alert_times_in_row(tracker_error_alert* out) {
   auto* a = reinterpret_cast<lt::tracker_error_alert*>(out);
   return a->times_in_row;
 }
-error_code* tracker_error_alert_error(tracker_error_alert* out) {
-  auto* a = reinterpret_cast<lt::tracker_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code tracker_error_alert_error(tracker_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::tracker_error_alert*>(out);
+//   return a->error;
+// }
 uint8_t tracker_error_alert_op(tracker_error_alert* out) {
   auto* a = reinterpret_cast<lt::tracker_error_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 char const* tracker_error_alert_failure_reason(tracker_error_alert* out) {
   auto* a = reinterpret_cast<lt::tracker_error_alert*>(out);
@@ -172,10 +162,10 @@ scrape_failed_alert* Alert2scrape_failed_alert(Alert* out) {
     );
 }
 
-error_code* scrape_failed_alert_error(scrape_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::scrape_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code scrape_failed_alert_error(scrape_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::scrape_failed_alert*>(out);
+//   return a->error;
+// }
 char const* scrape_failed_alert_error_message(scrape_failed_alert* out) {
   auto* a = reinterpret_cast<lt::scrape_failed_alert*>(out);
   return a->error_message();
@@ -209,17 +199,17 @@ storage_moved_failed_alert* Alert2storage_moved_failed_alert(Alert* out) {
     );
 }
 
-error_code* storage_moved_failed_alert_error(storage_moved_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::storage_moved_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code storage_moved_failed_alert_error(storage_moved_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::storage_moved_failed_alert*>(out);
+//   return a->error;
+// }
 char const* storage_moved_failed_alert_file_path(storage_moved_failed_alert* out) {
   auto* a = reinterpret_cast<lt::storage_moved_failed_alert*>(out);
   return a->file_path();
 }
 uint8_t storage_moved_failed_alert_op(storage_moved_failed_alert* out) {
   auto* a = reinterpret_cast<lt::storage_moved_failed_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 torrent_deleted_alert* Alert2torrent_deleted_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -239,10 +229,10 @@ torrent_delete_failed_alert* Alert2torrent_delete_failed_alert(Alert* out) {
     );
 }
 
-error_code* torrent_delete_failed_alert_error(torrent_delete_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::torrent_delete_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code torrent_delete_failed_alert_error(torrent_delete_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::torrent_delete_failed_alert*>(out);
+//   return a->error;
+// }
 // info_hash_t torrent_delete_failed_alert_info_hashes(torrent_delete_failed_alert* out) {
 //   auto* a = reinterpret_cast<lt::torrent_delete_failed_alert*>(out);
 //   return a->info_hashes;
@@ -254,12 +244,10 @@ save_resume_data_alert* Alert2save_resume_data_alert(Alert* out) {
     );
 }
 
-AddTorrentParams* save_resume_data_alert_params(save_resume_data_alert* out) {
-  auto* a = reinterpret_cast<lt::save_resume_data_alert*>(out);
-  return reinterpret_cast<AddTorrentParams*>(
-    new lt::add_torrent_params(a->params)
-  );
-}
+// add_torrent_params save_resume_data_alert_params(save_resume_data_alert* out) {
+//   auto* a = reinterpret_cast<lt::save_resume_data_alert*>(out);
+//   return a->params;
+// }
 save_resume_data_failed_alert* Alert2save_resume_data_failed_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<save_resume_data_failed_alert*>(
@@ -267,10 +255,10 @@ save_resume_data_failed_alert* Alert2save_resume_data_failed_alert(Alert* out) {
     );
 }
 
-error_code* save_resume_data_failed_alert_error(save_resume_data_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::save_resume_data_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code save_resume_data_failed_alert_error(save_resume_data_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::save_resume_data_failed_alert*>(out);
+//   return a->error;
+// }
 torrent_paused_alert* Alert2torrent_paused_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<torrent_paused_alert*>(
@@ -306,17 +294,17 @@ listen_failed_alert* Alert2listen_failed_alert(Alert* out) {
     );
 }
 
-error_code* listen_failed_alert_error(listen_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::listen_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code listen_failed_alert_error(listen_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::listen_failed_alert*>(out);
+//   return a->error;
+// }
 char const* listen_failed_alert_listen_interface(listen_failed_alert* out) {
   auto* a = reinterpret_cast<lt::listen_failed_alert*>(out);
   return a->listen_interface();
 }
 uint8_t listen_failed_alert_op(listen_failed_alert* out) {
   auto* a = reinterpret_cast<lt::listen_failed_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 int listen_failed_alert_port(listen_failed_alert* out) {
   auto* a = reinterpret_cast<lt::listen_failed_alert*>(out);
@@ -335,7 +323,7 @@ int listen_succeeded_alert_port(listen_succeeded_alert* out) {
 }
 uint8_t listen_succeeded_alert_socket_type(listen_succeeded_alert* out) {
   auto* a = reinterpret_cast<lt::listen_succeeded_alert*>(out);
-  return (std::uint8_t)a->socket_type;
+  return (uint8_t)a->socket_type;
 }
 fastresume_rejected_alert* Alert2fastresume_rejected_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -344,17 +332,17 @@ fastresume_rejected_alert* Alert2fastresume_rejected_alert(Alert* out) {
     );
 }
 
-error_code* fastresume_rejected_alert_error(fastresume_rejected_alert* out) {
-  auto* a = reinterpret_cast<lt::fastresume_rejected_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code fastresume_rejected_alert_error(fastresume_rejected_alert* out) {
+//   auto* a = reinterpret_cast<lt::fastresume_rejected_alert*>(out);
+//   return a->error;
+// }
 char const* fastresume_rejected_alert_file_path(fastresume_rejected_alert* out) {
   auto* a = reinterpret_cast<lt::fastresume_rejected_alert*>(out);
   return a->file_path();
 }
 operation_t fastresume_rejected_alert_op(fastresume_rejected_alert* out) {
   auto* a = reinterpret_cast<lt::fastresume_rejected_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 cache_flushed_alert* Alert2cache_flushed_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -370,10 +358,10 @@ torrent_error_alert* Alert2torrent_error_alert(Alert* out) {
     );
 }
 
-error_code* torrent_error_alert_error(torrent_error_alert* out) {
-  auto* a = reinterpret_cast<lt::torrent_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code torrent_error_alert_error(torrent_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::torrent_error_alert*>(out);
+//   return a->error;
+// }
 char const* torrent_error_alert_filename(torrent_error_alert* out) {
   auto* a = reinterpret_cast<lt::torrent_error_alert*>(out);
   return a->filename();
@@ -396,10 +384,10 @@ add_torrent_alert* Alert2add_torrent_alert(Alert* out) {
 //   auto* a = reinterpret_cast<lt::add_torrent_alert*>(out);
 //   return a->params;
 // }
-error_code* add_torrent_alert_error(add_torrent_alert* out) {
-  auto* a = reinterpret_cast<lt::add_torrent_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code add_torrent_alert_error(add_torrent_alert* out) {
+//   auto* a = reinterpret_cast<lt::add_torrent_alert*>(out);
+//   return a->error;
+// }
 state_update_alert* Alert2state_update_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<state_update_alert*>(
@@ -407,15 +395,10 @@ state_update_alert* Alert2state_update_alert(Alert* out) {
     );
 }
 
-int state_update_alert_status(state_update_alert* out, torrent_status** pp) {
-  auto* a = reinterpret_cast<lt::state_update_alert*>(out);
-  torrent_status* p = (torrent_status*)malloc(sizeof(torrent_status) * a->status.size());
-  for (int i=0; i<a->status.size(); i++) {
-    s2s(a->status[i], &p[i], sizeof(torrent_status));
-  }
-  *pp = p;
-  return a->status.size();
-}
+// std::vector<torrent_status> state_update_alert_status(state_update_alert* out) {
+//   auto* a = reinterpret_cast<lt::state_update_alert*>(out);
+//   return a->status;
+// }
 session_stats_alert* Alert2session_stats_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<session_stats_alert*>(
@@ -423,17 +406,10 @@ session_stats_alert* Alert2session_stats_alert(Alert* out) {
     );
 }
 
-int session_stats_alert_counters(session_stats_alert* out, int64_t** pp) {
-  auto* a = reinterpret_cast<lt::session_stats_alert*>(out);
-  auto span = a->counters();
-  
-  int64_t* buf = (int64_t*)malloc(sizeof(int64_t) * span.size());
-  for (int i=0; i<span.size(); i++) {
-    buf[i] = span[i];
-  }
-  *pp = buf;
-  return span.size();
-}
+// span<std::int64_t const> session_stats_alert_counters(session_stats_alert* out) {
+//   auto* a = reinterpret_cast<lt::session_stats_alert*>(out);
+//   return a->counters();
+// }
 dht_immutable_item_alert* Alert2dht_immutable_item_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<dht_immutable_item_alert*>(
@@ -543,15 +519,10 @@ file_progress_alert* Alert2file_progress_alert(Alert* out) {
     );
 }
 
-int file_progress_alert_files(file_progress_alert* out, int64_t* buf) {
-  auto* a = reinterpret_cast<lt::file_progress_alert*>(out);
-  if (buf != nullptr) {
-    for (int i=0; i < a->files.size(); i++) {
-      *(buf++) = a->files[lt::file_index_t(i)];
-    }
-  }
-  return a->files.size();
-}
+// aux::vector<std::int64_t, file_index_t> file_progress_alert_files(file_progress_alert* out) {
+//   auto* a = reinterpret_cast<lt::file_progress_alert*>(out);
+//   return a->files;
+// }
 piece_info_alert* Alert2piece_info_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<piece_info_alert*>(
@@ -566,6 +537,17 @@ piece_info_alert* Alert2piece_info_alert(Alert* out) {
 // std::vector<block_info> piece_info_alert_block_data(piece_info_alert* out) {
 //   auto* a = reinterpret_cast<lt::piece_info_alert*>(out);
 //   return a->block_data;
+// }
+tracker_list_alert* Alert2tracker_list_alert(Alert* out) {
+  auto* a = reinterpret_cast<lt::alert*>(out);
+  return reinterpret_cast<tracker_list_alert*>(
+      lt::alert_cast<lt::tracker_list_alert>(a)
+    );
+}
+
+// std::vector<announce_entry> tracker_list_alert_trackers(tracker_list_alert* out) {
+//   auto* a = reinterpret_cast<lt::tracker_list_alert*>(out);
+//   return a->trackers;
 // }
 piece_availability_alert* Alert2piece_availability_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -594,10 +576,6 @@ tracker_reply_alert* Alert2tracker_reply_alert(Alert* out) {
   return reinterpret_cast<tracker_reply_alert*>(
       lt::alert_cast<lt::tracker_reply_alert>(a)
     );
-}
-const char* tracker_reply_alert_tracker_url(tracker_reply_alert* out) {
-  auto* a = reinterpret_cast<lt::tracker_reply_alert*>(out);
-  return a->tracker_url();
 }
 
 int tracker_reply_alert_num_peers(tracker_reply_alert* out) {
@@ -635,7 +613,7 @@ hash_failed_alert* Alert2hash_failed_alert(Alert* out) {
 
 piece_index_t hash_failed_alert_piece_index(hash_failed_alert* out) {
   auto* a = reinterpret_cast<lt::hash_failed_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 peer_ban_alert* Alert2peer_ban_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -667,12 +645,12 @@ peer_error_alert* Alert2peer_error_alert(Alert* out) {
 
 operation_t peer_error_alert_op(peer_error_alert* out) {
   auto* a = reinterpret_cast<lt::peer_error_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
-error_code* peer_error_alert_error(peer_error_alert* out) {
-  auto* a = reinterpret_cast<lt::peer_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code peer_error_alert_error(peer_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::peer_error_alert*>(out);
+//   return a->error;
+// }
 peer_connect_alert* Alert2peer_connect_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<peer_connect_alert*>(
@@ -686,7 +664,7 @@ peer_connect_alert* Alert2peer_connect_alert(Alert* out) {
 // }
 socket_type_t peer_connect_alert_socket_type(peer_connect_alert* out) {
   auto* a = reinterpret_cast<lt::peer_connect_alert*>(out);
-  return (std::uint8_t)a->socket_type;
+  return (uint8_t)a->socket_type;
 }
 peer_disconnected_alert* Alert2peer_disconnected_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -697,16 +675,16 @@ peer_disconnected_alert* Alert2peer_disconnected_alert(Alert* out) {
 
 socket_type_t peer_disconnected_alert_socket_type(peer_disconnected_alert* out) {
   auto* a = reinterpret_cast<lt::peer_disconnected_alert*>(out);
-  return (std::uint8_t)a->socket_type;
+  return (uint8_t)a->socket_type;
 }
 operation_t peer_disconnected_alert_op(peer_disconnected_alert* out) {
   auto* a = reinterpret_cast<lt::peer_disconnected_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
-error_code* peer_disconnected_alert_error(peer_disconnected_alert* out) {
-  auto* a = reinterpret_cast<lt::peer_disconnected_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code peer_disconnected_alert_error(peer_disconnected_alert* out) {
+//   auto* a = reinterpret_cast<lt::peer_disconnected_alert*>(out);
+//   return a->error;
+// }
 // close_reason_t peer_disconnected_alert_reason(peer_disconnected_alert* out) {
 //   auto* a = reinterpret_cast<lt::peer_disconnected_alert*>(out);
 //   return a->reason;
@@ -743,7 +721,7 @@ piece_finished_alert* Alert2piece_finished_alert(Alert* out) {
 
 piece_index_t piece_finished_alert_piece_index(piece_finished_alert* out) {
   auto* a = reinterpret_cast<lt::piece_finished_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 request_dropped_alert* Alert2request_dropped_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -754,7 +732,7 @@ request_dropped_alert* Alert2request_dropped_alert(Alert* out) {
 
 piece_index_t request_dropped_alert_piece_index(request_dropped_alert* out) {
   auto* a = reinterpret_cast<lt::request_dropped_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 int request_dropped_alert_block_index(request_dropped_alert* out) {
   auto* a = reinterpret_cast<lt::request_dropped_alert*>(out);
@@ -769,7 +747,7 @@ block_timeout_alert* Alert2block_timeout_alert(Alert* out) {
 
 piece_index_t block_timeout_alert_piece_index(block_timeout_alert* out) {
   auto* a = reinterpret_cast<lt::block_timeout_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 int block_timeout_alert_block_index(block_timeout_alert* out) {
   auto* a = reinterpret_cast<lt::block_timeout_alert*>(out);
@@ -784,7 +762,7 @@ block_finished_alert* Alert2block_finished_alert(Alert* out) {
 
 piece_index_t block_finished_alert_piece_index(block_finished_alert* out) {
   auto* a = reinterpret_cast<lt::block_finished_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 int block_finished_alert_block_index(block_finished_alert* out) {
   auto* a = reinterpret_cast<lt::block_finished_alert*>(out);
@@ -799,7 +777,7 @@ block_downloading_alert* Alert2block_downloading_alert(Alert* out) {
 
 piece_index_t block_downloading_alert_piece_index(block_downloading_alert* out) {
   auto* a = reinterpret_cast<lt::block_downloading_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 int block_downloading_alert_block_index(block_downloading_alert* out) {
   auto* a = reinterpret_cast<lt::block_downloading_alert*>(out);
@@ -814,7 +792,7 @@ unwanted_block_alert* Alert2unwanted_block_alert(Alert* out) {
 
 piece_index_t unwanted_block_alert_piece_index(unwanted_block_alert* out) {
   auto* a = reinterpret_cast<lt::unwanted_block_alert*>(out);
-  return (std::int32_t)a->piece_index;
+  return a->piece_index;
 }
 int unwanted_block_alert_block_index(unwanted_block_alert* out) {
   auto* a = reinterpret_cast<lt::unwanted_block_alert*>(out);
@@ -831,10 +809,10 @@ char const* url_seed_alert_server_url(url_seed_alert* out) {
   auto* a = reinterpret_cast<lt::url_seed_alert*>(out);
   return a->server_url();
 }
-error_code* url_seed_alert_error(url_seed_alert* out) {
-  auto* a = reinterpret_cast<lt::url_seed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code url_seed_alert_error(url_seed_alert* out) {
+//   auto* a = reinterpret_cast<lt::url_seed_alert*>(out);
+//   return a->error;
+// }
 char const* url_seed_alert_error_message(url_seed_alert* out) {
   auto* a = reinterpret_cast<lt::url_seed_alert*>(out);
   return a->error_message();
@@ -846,10 +824,10 @@ metadata_failed_alert* Alert2metadata_failed_alert(Alert* out) {
     );
 }
 
-error_code* metadata_failed_alert_error(metadata_failed_alert* out) {
-  auto* a = reinterpret_cast<lt::metadata_failed_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code metadata_failed_alert_error(metadata_failed_alert* out) {
+//   auto* a = reinterpret_cast<lt::metadata_failed_alert*>(out);
+//   return a->error;
+// }
 metadata_received_alert* Alert2metadata_received_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<metadata_received_alert*>(
@@ -866,21 +844,17 @@ udp_error_alert* Alert2udp_error_alert(Alert* out) {
 
 uint8_t udp_error_alert_operation(udp_error_alert* out) {
   auto* a = reinterpret_cast<lt::udp_error_alert*>(out);
-  return (std::uint8_t)a->operation;
+  return (uint8_t)a->operation;
 }
-error_code* udp_error_alert_error(udp_error_alert* out) {
-  auto* a = reinterpret_cast<lt::udp_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code udp_error_alert_error(udp_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::udp_error_alert*>(out);
+//   return a->error;
+// }
 external_ip_alert* Alert2external_ip_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<external_ip_alert*>(
       lt::alert_cast<lt::external_ip_alert>(a)
     );
-}
-StdString* external_ip_alert_external_address(Alert* out) {
-  auto* a = reinterpret_cast<lt::external_ip_alert*>(out);
-  return StdString_New(a->external_address.to_string());
 }
 
 portmap_error_alert* Alert2portmap_error_alert(Alert* out) {
@@ -902,10 +876,10 @@ portmap_error_alert* Alert2portmap_error_alert(Alert* out) {
 //   auto* a = reinterpret_cast<lt::portmap_error_alert*>(out);
 //   return a->local_address;
 // }
-error_code* portmap_error_alert_error(portmap_error_alert* out) {
-  auto* a = reinterpret_cast<lt::portmap_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code portmap_error_alert_error(portmap_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::portmap_error_alert*>(out);
+//   return a->error;
+// }
 portmap_alert* Alert2portmap_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<portmap_alert*>(
@@ -996,16 +970,10 @@ stats_alert* Alert2stats_alert(Alert* out) {
     );
 }
 
-int stats_alert_transferred(stats_alert* out, int64_t** buf) {
-  auto* a = reinterpret_cast<lt::stats_alert*>(out);
-  
-  int64_t* p = (int64_t*)malloc(sizeof(int64_t) * lt::stats_alert::num_channels);
-  for (int i=0;i<lt::stats_alert::num_channels; ++i) {
-    p[i] = a->transferred[i];
-  }
-  *buf = p;
-  return lt::stats_alert::num_channels;
-}
+// std::array<int, num_channels> stats_alert_transferred(stats_alert* out) {
+//   auto* a = reinterpret_cast<lt::stats_alert*>(out);
+//   return a->transferred;
+// }
 int stats_alert_interval(stats_alert* out) {
   auto* a = reinterpret_cast<lt::stats_alert*>(out);
   return a->interval;
@@ -1044,7 +1012,7 @@ incoming_connection_alert* Alert2incoming_connection_alert(Alert* out) {
 
 socket_type_t incoming_connection_alert_socket_type(incoming_connection_alert* out) {
   auto* a = reinterpret_cast<lt::incoming_connection_alert*>(out);
-  return (std::uint8_t)a->socket_type;
+  return (uint8_t)a->socket_type;
 }
 // aux::noexcept_movable<tcp::endpoint> incoming_connection_alert_endpoint(incoming_connection_alert* out) {
 //   auto* a = reinterpret_cast<lt::incoming_connection_alert*>(out);
@@ -1057,13 +1025,13 @@ dht_error_alert* Alert2dht_error_alert(Alert* out) {
     );
 }
 
-error_code* dht_error_alert_error(dht_error_alert* out) {
-  auto* a = reinterpret_cast<lt::dht_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code dht_error_alert_error(dht_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::dht_error_alert*>(out);
+//   return a->error;
+// }
 operation_t dht_error_alert_op(dht_error_alert* out) {
   auto* a = reinterpret_cast<lt::dht_error_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 dht_put_alert* Alert2dht_put_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -1084,14 +1052,14 @@ dht_put_alert* Alert2dht_put_alert(Alert* out) {
 //   auto* a = reinterpret_cast<lt::dht_put_alert*>(out);
 //   return a->signature;
 // }
-StdString* dht_put_alert_salt(dht_put_alert* out) {
-  auto* a = reinterpret_cast<lt::dht_put_alert*>(out);
-  return StdString_New(a->salt);
-}
-int64_t dht_put_alert_seq(dht_put_alert* out) {
-  auto* a = reinterpret_cast<lt::dht_put_alert*>(out);
-  return a->seq;
-}
+// std::string dht_put_alert_salt(dht_put_alert* out) {
+//   auto* a = reinterpret_cast<lt::dht_put_alert*>(out);
+//   return a->salt;
+// }
+// std::int64_t dht_put_alert_seq(dht_put_alert* out) {
+//   auto* a = reinterpret_cast<lt::dht_put_alert*>(out);
+//   return a->seq;
+// }
 int dht_put_alert_num_success(dht_put_alert* out) {
   auto* a = reinterpret_cast<lt::dht_put_alert*>(out);
   return a->num_success;
@@ -1103,10 +1071,10 @@ i2p_alert* Alert2i2p_alert(Alert* out) {
     );
 }
 
-error_code* i2p_alert_error(i2p_alert* out) {
-  auto* a = reinterpret_cast<lt::i2p_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code i2p_alert_error(i2p_alert* out) {
+//   auto* a = reinterpret_cast<lt::i2p_alert*>(out);
+//   return a->error;
+// }
 dht_outgoing_get_peers_alert* Alert2dht_outgoing_get_peers_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<dht_outgoing_get_peers_alert*>(
@@ -1178,10 +1146,10 @@ lsd_error_alert* Alert2lsd_error_alert(Alert* out) {
 //   auto* a = reinterpret_cast<lt::lsd_error_alert*>(out);
 //   return a->local_address;
 // }
-error_code* lsd_error_alert_error(lsd_error_alert* out) {
-  auto* a = reinterpret_cast<lt::lsd_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code lsd_error_alert_error(lsd_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::lsd_error_alert*>(out);
+//   return a->error;
+// }
 dht_stats_alert* Alert2dht_stats_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<dht_stats_alert*>(
@@ -1291,10 +1259,10 @@ session_error_alert* Alert2session_error_alert(Alert* out) {
     );
 }
 
-error_code* session_error_alert_error(session_error_alert* out) {
-  auto* a = reinterpret_cast<lt::session_error_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code session_error_alert_error(session_error_alert* out) {
+//   auto* a = reinterpret_cast<lt::session_error_alert*>(out);
+//   return a->error;
+// }
 dht_live_nodes_alert* Alert2dht_live_nodes_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<dht_live_nodes_alert*>(
@@ -1382,13 +1350,13 @@ socks5_alert* Alert2socks5_alert(Alert* out) {
     );
 }
 
-error_code* socks5_alert_error(socks5_alert* out) {
-  auto* a = reinterpret_cast<lt::socks5_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code socks5_alert_error(socks5_alert* out) {
+//   auto* a = reinterpret_cast<lt::socks5_alert*>(out);
+//   return a->error;
+// }
 operation_t socks5_alert_op(socks5_alert* out) {
   auto* a = reinterpret_cast<lt::socks5_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 // aux::noexcept_movable<tcp::endpoint> socks5_alert_ip(socks5_alert* out) {
 //   auto* a = reinterpret_cast<lt::socks5_alert*>(out);
@@ -1401,13 +1369,13 @@ file_prio_alert* Alert2file_prio_alert(Alert* out) {
     );
 }
 
-error_code* file_prio_alert_error(file_prio_alert* out) {
-  auto* a = reinterpret_cast<lt::file_prio_alert*>(out);
-  return error_code_new(a->error);
-}
+// error_code file_prio_alert_error(file_prio_alert* out) {
+//   auto* a = reinterpret_cast<lt::file_prio_alert*>(out);
+//   return a->error;
+// }
 operation_t file_prio_alert_op(file_prio_alert* out) {
   auto* a = reinterpret_cast<lt::file_prio_alert*>(out);
-  return (std::uint8_t)a->op;
+  return (uint8_t)a->op;
 }
 oversized_file_alert* Alert2oversized_file_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
@@ -1418,6 +1386,6 @@ oversized_file_alert* Alert2oversized_file_alert(Alert* out) {
 
 file_index_t oversized_file_alert_reserved(oversized_file_alert* out) {
   auto* a = reinterpret_cast<lt::oversized_file_alert*>(out);
-  return (std::int32_t)a->reserved;
+  return a->reserved;
 }
 } // extern C
