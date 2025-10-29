@@ -350,6 +350,9 @@ LIBTORRENT_C_DECL int session_set_settings(struct libtorrent_session* ses, int f
 // the size of the returned value will be written to the ``value_size`` out
 // parameter. Returns non-zero on failure.
 LIBTORRENT_C_DECL int session_get_setting(struct libtorrent_session* ses, int tag, void* value, int* value_size);
+LIBTORRENT_C_DECL void session_post_torrent_updates(struct libtorrent_session* ses);
+LIBTORRENT_C_DECL void session_post_session_stats(struct libtorrent_session* ses);
+LIBTORRENT_C_DECL void session_post_dht_stats(struct libtorrent_session* ses);
 
 // TODO: remove this in favor of post_torrent_updates()
 LIBTORRENT_C_DECL int torrent_get_status(int tor, struct torrent_status* s, int struct_size);

@@ -402,6 +402,19 @@ int session_get_setting(libtorrent_session* ses, int tag, void* value, int* valu
 	}
 }
 
+void session_post_torrent_updates(struct libtorrent_session* ses) {
+	auto* s = reinterpret_cast<lt::session*>(ses);
+	s->post_torrent_updates();
+}
+void session_post_session_stats(struct libtorrent_session* ses) {
+	auto* s = reinterpret_cast<lt::session*>(ses);
+	s->post_session_stats();
+}
+void session_post_dht_stats(struct libtorrent_session* ses) {
+	auto* s = reinterpret_cast<lt::session*>(ses);
+	s->post_dht_stats();
+}
+
 void s2s(lt::torrent_status const &ts, torrent_status* s, int struct_size) {
 	s->handle = find_handle(ts.handle);
 	s->state = (state_t)ts.state;
