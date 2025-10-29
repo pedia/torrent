@@ -109,14 +109,14 @@ state_changed_alert* Alert2state_changed_alert(Alert* out) {
     );
 }
 
-// torrent_status::state_t state_changed_alert_state(state_changed_alert* out) {
-//   auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
-//   return a->state;
-// }
-// torrent_status::state_t state_changed_alert_prev_state(state_changed_alert* out) {
-//   auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
-//   return a->prev_state;
-// }
+int state_changed_alert_state(state_changed_alert* out) {
+  auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
+  return (int)a->state;
+}
+int state_changed_alert_prev_state(state_changed_alert* out) {
+  auto* a = reinterpret_cast<lt::state_changed_alert*>(out);
+  return (int)a->prev_state;
+}
 tracker_error_alert* Alert2tracker_error_alert(Alert* out) {
   auto* a = reinterpret_cast<lt::alert*>(out);
   return reinterpret_cast<tracker_error_alert*>(

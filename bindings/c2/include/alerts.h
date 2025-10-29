@@ -58,10 +58,10 @@ LIBTORRENT_C_DECL performance_alert* Alert2performance_alert(Alert*);
 // state_changed_alert
 typedef struct state_changed_alert state_changed_alert;
 LIBTORRENT_C_DECL state_changed_alert* Alert2state_changed_alert(Alert*);
-// torrent_status::state_t state
-// LIBTORRENT_C_DECL torrent_status::state_t state_changed_alert_state(state_changed_alert*);
-// torrent_status::state_t prev_state
-// LIBTORRENT_C_DECL torrent_status::state_t state_changed_alert_prev_state(state_changed_alert*);
+LIBTORRENT_C_DECL int state_changed_alert_state(state_changed_alert*);
+
+LIBTORRENT_C_DECL int state_changed_alert_prev_state(state_changed_alert*);
+
 
 // tracker_error_alert
 typedef struct tracker_error_alert tracker_error_alert;
