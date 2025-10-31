@@ -224,6 +224,7 @@ LIBTORRENT_C_DECL void Session_Pause(Session*);
 LIBTORRENT_C_DECL void Session_Resume(Session*);
 LIBTORRENT_C_DECL SessionParams* Session_State(Session*);
 LIBTORRENT_C_DECL Alerts* Session_Alerts(Session*);
+LIBTORRENT_C_DECL void Session_SetAlertNotify(Session*, void(*)());
 LIBTORRENT_C_DECL void Session_PostStats(Session*);
 LIBTORRENT_C_DECL void Session_PostTorrentUpdates(Session*);
 LIBTORRENT_C_DECL void Session_PostDHTStats(Session*);

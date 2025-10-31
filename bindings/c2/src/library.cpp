@@ -864,6 +864,10 @@ Alerts* Session_Alerts(Session* out) {
 		ret
 	)));
 }
+void Session_SetAlertNotify(Session* out, void(*f)()) {
+	auto* s = reinterpret_cast<lt::session*>(out);
+	s->set_alert_notify(f);
+}
 // post_session_stats => session_stats_alert
 // post_torrent_updates => state_update_alert
 void Session_PostStats(Session* out) {

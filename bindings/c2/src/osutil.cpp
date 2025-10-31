@@ -8,6 +8,7 @@ int os_rlimit() {
     int res = getrlimit(RLIMIT_NOFILE, &r);
     if (res == 0) {
         printf("cur %llu max %llu\n", r.rlim_cur, r.rlim_max);
+        r.rlim_max += 100;
         res = setrlimit(RLIMIT_NOFILE, &r);
     }
     return res;
