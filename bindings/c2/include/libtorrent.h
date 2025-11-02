@@ -460,8 +460,6 @@ LIBTORRENT_C_DECL StdString* FileStorage_FilePath(FileStorage* out, int i);
 LIBTORRENT_C_DECL int64_t FileStorage_FileSize(FileStorage* out, int i);
 LIBTORRENT_C_DECL int FileStorage_FileFlag(FileStorage* out, int i);
 
-LIBTORRENT_C_DECL int os_rlimit();
-
 // split alerts outside
 #include "alerts.h"
 

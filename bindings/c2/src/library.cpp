@@ -1249,3 +1249,7 @@ void dump_handles() {
 }
 
 } // extern "C"
+
+int main() {
+	return 0;
+}
