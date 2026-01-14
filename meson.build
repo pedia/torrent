@@ -11,7 +11,7 @@ project('libtorrent', ['cpp','c'],
 # mkdir subprojects && meson wrap install openssl
 # meson setup --reconfigure --cross-file android-arm64.ini -Dcrypto=openssl outarm64
 # meson setup --reconfigure out && ninja -C out -v -j1
-# meson setup --buildtype=release --reconfigure out 
+# meson setup --buildtype=release --reconfigure out
 
 
 src = files(
@@ -205,8 +205,11 @@ defs = [
     '-DBOOST_NO_DEPRECATED',
 
     '-DTORRENT_BUILDING_LIBRARY',
-    '-D_FILE_OFFSET_BITS=64',
 ]
+
+if host_machine.cpu_family() != 'arm'
+    defs += '-D_FILE_OFFSET_BITS=64'
+endif
 
 boost_dep = dependency('boost', required: true)
 thread_dep = dependency('threads', required: true)
