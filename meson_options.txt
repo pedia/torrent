@@ -1,4 +1,4 @@
 option('crypto', type : 'string', value : 'built-in', description : '')
 option('logging', type : 'boolean', value : false)
-option('alert-msg', type : 'boolean', value : true)
-option('dht', type : 'boolean', value : false)
+option('alert-msg', type : 'boolean', value : false)
+option('dht', type : 'boolean', value : true)

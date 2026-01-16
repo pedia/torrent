@@ -4,13 +4,14 @@ project('libtorrent', ['cpp','c'],
     license : 'MIT',
     default_options : [
         'cpp_std=c++14',
-        'cpp_args=-ftemplate-depth=512',
+        'cpp_args=-ftemplate-depth=512 -fvisibility=hidden',
+        'c_args=-fvisibility=hidden',
     ],
 )
 
 # mkdir subprojects && meson wrap install openssl
 # meson setup --reconfigure --cross-file android-arm64.ini -Dcrypto=openssl outarm64
-# meson setup --reconfigure out && ninja -C out -v -j1
+# meson setup --reconfigure -Dlogging=true out && ninja -C out -v -j1
 # meson setup --buildtype=release --reconfigure out
 
 
@@ -226,7 +227,9 @@ if not get_option('alert-msg')
     defs += [ '-DTORRENT_DISABLE_ALERT_MSG' ]
 endif
 if not get_option('dht')
-    defs += [ '-DTORRENT_DISABLE_DHT', '-DTORRENT_USE_I2P=1' ]
+    defs += [ '-DTORRENT_DISABLE_DHT' ]
+else
+    defs += [ '-DTORRENT_USE_I2P=1' ]
 endif
 
 crypto = get_option('crypto')
@@ -242,6 +245,10 @@ if host_machine.system() == 'android'
     subproject('openssl')
     deps += dependency('openssl', required: true)
 endif
+
+foreach d : defs
+    message('def', d)
+endforeach
 
 subdir('deps/try_signal')
 
@@ -263,7 +270,7 @@ endforeach
 torrent = static_library('torrent',
     src + kademlia + ed25519 + 'src/pe_crypto.cpp',
     include_directories: inc,
-    cpp_args: defs,
+    cpp_args: defs + '-DTORRENT_BUILDING_LIBRARY',
     dependencies: deps,
     link_with: [ mmap_storage ],
 )
